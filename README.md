@@ -1,19 +1,66 @@
+![“Draw something that makes you feel joy” in large serif type on a soft lilac-to-cyan gradient, above a “Suggest something else” button.](.github/cover.jpg)
+
 # Instead
 
 Fun, free and fulfilling activities to do instead of falling into a screen.
 
-## Activities
+Instead is a browser extension for Chrome and Firefox. Open a site on your list and you land on a page suggesting something better to do. The same page is also a website, served from this repo on GitHub Pages.
 
-Activities live in `activities.txt`, one per line. Lines can include Markdown links: `Listen to [Dharmapunx](https://example.com)`.
+Instead has no server and collects nothing. Its settings live in your browser, which syncs them between your devices if you've turned on syncing.
 
-## Settings
+## What the extension does
 
-Press `\` to show or hide the settings. The primary hue is random on each load and each new suggestion; every other colour is derived from it.
+- **Redirects** the sites on your list, before the browser sends anything to them. Facebook, Instagram, Reddit and TikTok are on the list by default, subdomains included.
+- **Offers a way through.** After five seconds a "Take me to …" button appears. It lets that tab onto the site for 15 minutes, or until the tab closes.
+- **Watches in-page navigation.** These sites change pages without reloading, so a small script on them catches moves from an allowed page to a redirected one.
 
-## Run locally
+The toolbar button opens the settings, which save as you go:
+
+- **Sites to redirect**, one per line.
+- **Always allowed:** a checkbox for direct messages on redirected sites, such as facebook.com/messages, and a list of other pages, as the start of an address, such as `reddit.com/r/name`.
+- **Suggestions**, as below.
+
+## Suggestions
+
+The default suggestions are in `suggestions.txt`, one per line. A line can include Markdown links: `Listen to [Dharmapunx](https://www.dharmapunxnyc.com/)`.
+
+The website always reads this file. The extension copies it on install, and from then on uses the list in its settings; Reset to defaults copies it again.
+
+## Build and distribution
+
+Build the extension from the repo root:
+
+```bash
+sh scripts/build-extension.sh
+```
+
+This makes `dist/extension/` and `dist/instead.zip` from the page files at the root and the files in `extension/`.
+
+To install it from the build:
+
+- **Chrome:** open `chrome://extensions`, turn on Developer mode, choose Load unpacked, and pick `dist/extension`.
+- **Firefox:** open `about:debugging#/runtime/this-firefox`, choose Load Temporary Add-on, and pick `dist/extension/manifest.json`. It's removed when Firefox restarts; to keep it, use Firefox Developer Edition: set `xpinstall.signatures.required` to false in `about:config`, then install `dist/instead.zip` from `about:addons` with Install Add-on From File. Or have Mozilla sign it for free as an unlisted add-on. If settings ask for permission under the sites, click Allow.
+
+Listings on the Chrome Web Store and Firefox Add-ons are coming. To check or sign the Firefox build with Mozilla's `web-ext` tool, use Node 22; it crashes on Node 24.
+
+## Running locally and editing the page
+
+Serve the repo root:
 
 ```bash
 python3 -m http.server 8765
 ```
 
 Then [open localhost:8765](http://localhost:8765).
+
+Press `\` to show or hide the colour settings. The primary hue is random on each load and each new suggestion, and every other colour is derived from it. Defaults for the colours and the gradient are at the top of `background.js`.
+
+Where things live:
+
+- `index.html` and `app.js`: the page and its behaviour
+- `background.js` and `okhsl.js`: the gradient and colour maths
+- `cutout.js` and `cutout.css`: buttons whose label is cut out of the pill
+- `extension/`: the manifest, redirect rules, in-page watcher and settings page
+- `fonts/` and `icons/`: bundled fonts and the hand icon
+
+Changes to the page show on the website straight away. For the extension, rebuild, then reload it from `chrome://extensions` or `about:debugging`.

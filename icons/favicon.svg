@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- Small-size variant of icon.svg (16 and 32 px): the same hand, with the outlined hand filling the full height. It sits 8 units left of centre so that at 16 px every finger edge lands on a whole pixel and the gaps between fingers render as clean white lines. -->
+  <path fill="#000" stroke="#fff" stroke-width="32" stroke-linejoin="round" paint-order="stroke" transform="translate(-8 0)" d="M216,104v48a88,88,0,0,1-176,0V64a16,16,0,0,1,32,0v56a8,8,0,0,0,16,0V32a16,16,0,0,1,32,0v80a8,8,0,0,0,16,0V48a16,16,0,0,1,32,0v80.67A48.08,48.08,0,0,0,128,176a8,8,0,0,0,16,0,32,32,0,0,1,32-32,8,8,0,0,0,8-8V104a16,16,0,0,1,32,0Z"/>
+</svg>

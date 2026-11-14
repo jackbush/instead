@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Instead settings</title>
+  <link rel="icon" href="icons/icon-16.png" sizes="16x16">
+  <link rel="icon" href="icons/icon-32.png" sizes="32x32">
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="options.css">
+  <link rel="stylesheet" href="cutout.css">
+  <script src="okhsl.js"></script>
+  <script src="background.js"></script>
+  <script src="cutout.js"></script>
+  <script type="module" src="options.js"></script>
+</head>
+<body>
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <main>
+    <header class="intro">
+      <h1>Settings</h1>
+      <p class="lede"><b>Instead</b> has no server and collects nothing: your settings stay in your browser, which syncs them to your other devices if you’ve turned on&nbsp;syncing.</p>
+      <div class="intro-actions">
+        <a id="preview" class="btn cut-out" href="index.html" target="_blank" rel="noopener"><span>Preview</span><svg class="icon" aria-hidden="true" viewBox="0 0 256 256"><path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z"/></svg><span class="visually-hidden"> (opens in a new tab)</span></a>
+        <button id="reset" class="btn" type="button" disabled>Reset to defaults<svg class="icon" aria-hidden="true" viewBox="0 0 256 256"><path d="M228,128a100,100,0,0,1-98.66,100H128a99.39,99.39,0,0,1-68.62-27.29,12,12,0,0,1,16.48-17.45,76,76,0,1,0-1.57-109c-.13.13-.25.25-.39.37L54.89,92H72a12,12,0,0,1,0,24H24a12,12,0,0,1-12-12V56a12,12,0,0,1,24,0V76.72L57.48,57.06A100,100,0,0,1,228,128Z"/></svg></button>
+      </div>
+    </header>
+
+    <div class="fields">
+      <section>
+        <h2 id="sites-h">Sites to redirect</h2>
+        <p id="sites-help" class="help">One site per line. Subdomains are included.</p>
+        <textarea id="sites" name="sites" rows="1" aria-labelledby="sites-h" aria-describedby="sites-help sites-note access" spellcheck="false" autocapitalize="off" autocomplete="off" disabled></textarea>
+        <ul id="sites-note" class="note" hidden></ul>
+        <ul id="access" class="note" hidden></ul>
+      </section>
+
+      <section>
+        <h2 id="exceptions-h">Always allowed</h2>
+        <label class="check">
+          <input id="allow-messages" type="checkbox" disabled>
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 256 256"><path d="M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z"/></svg></span>
+          <span>Direct messages on redirected sites, such as <b>facebook.com/messages</b></span>
+        </label>
+        <p id="exceptions-help" class="help">Other pages that are never redirected, one per line.</p>
+        <textarea id="exceptions" name="exceptions" rows="1" placeholder="reddit.com/r/name" aria-labelledby="exceptions-h" aria-describedby="exceptions-help exceptions-note" spellcheck="false" autocapitalize="off" autocomplete="off" disabled></textarea>
+        <ul id="exceptions-note" class="note" hidden></ul>
+      </section>
+
+      <section>
+        <h2 id="suggestions-h">Suggestions</h2>
+        <p id="suggestions-help" class="help">One per line. Make a link with Markdown: <b>[Call a friend](https://…)</b>.</p>
+        <textarea id="suggestions" name="suggestions" rows="1" aria-labelledby="suggestions-h" aria-describedby="suggestions-help suggestions-note" spellcheck="true" disabled></textarea>
+        <ul id="suggestions-note" class="note" hidden></ul>
+      </section>
+
+    </div>
+  </main>
+  <p id="status" class="status" role="status" aria-live="polite" hidden></p>
+</body>
+</html>

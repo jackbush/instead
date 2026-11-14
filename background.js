@@ -4,7 +4,7 @@
 
 const PARAMS = [
   { group: "All colours" },
-  { key: "cap", label: "Max chroma", min: 0, max: 0.32, step: 0.01, value: 0.15 },
+  { key: "cap", label: "Max chroma", min: 0, max: 0.32, step: 0.01, value: 0.13 },
   { group: "Primary (bottom)" },
   { key: "h", label: "Hue", min: 0, max: 359, value: 249 },
   { key: "s", label: "Saturation", min: 0, max: 100, value: 100 },
@@ -14,7 +14,7 @@ const PARAMS = [
   { key: "ds", label: "Saturation", min: -100, max: 100, value: 0 },
   { key: "dl", label: "Lightness", min: -100, max: 100, value: 0 },
   { group: "Gradient" },
-  { key: "width", label: "Width (% of height)", min: 10, max: 400, value: 200 },
+  { key: "width", label: "Width (% of height)", min: 10, max: 400, value: 150 },
   { key: "guide", label: "Show guide line", type: "checkbox", value: false },
   { group: "Text and button" },
   { key: "th", label: "Hue offset", min: -180, max: 180, value: -120 },

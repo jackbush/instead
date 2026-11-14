@@ -1,0 +1,208 @@
+:root {
+  /* --primary and --ink are set from the params by applyColours(). */
+  --primary: oklab(0.9 -0.03 -0.06);
+  --ink: oklab(0.2 0 -0.04);
+  --pad: clamp(1.5rem, 6vw, 6rem);
+  --line: 1.5px;
+  --field: #fff;
+  --font: "Hanken Grotesk", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  padding: var(--pad);
+  background: var(--primary);
+  color: var(--ink);
+  font: 500 1rem/1.5 var(--font);
+}
+
+#bg {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+main { max-width: 44rem; }
+
+h1, h2 {
+  margin: 0;
+  font-family: Gloock, Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+h1 {
+  font-size: clamp(3.15rem, 9.9vw, 6.5rem);
+  line-height: 1.04;
+  margin-bottom: 1rem;
+}
+h2 {
+  font-size: clamp(1.9rem, 4vw, 2.5rem);
+  line-height: 1.05;
+}
+
+section + section { margin-top: clamp(2.25rem, 5vw, 3.25rem); }
+
+.help {
+  max-width: 38rem;
+  margin: 0.6rem 0 1rem;
+  text-wrap: pretty;
+}
+
+/* A checkbox drawn to match the fields: the real input sits invisibly over the box. */
+.check {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 1rem 0 1.25rem;
+  cursor: pointer;
+}
+.check input {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+.check .box {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: var(--line) solid var(--ink);
+  border-radius: 0.45rem;
+  background: var(--field);
+}
+.check svg { width: 1rem; height: 1rem; fill: var(--primary); visibility: hidden; }
+.check input:checked + .box { background: var(--ink); }
+.check input:checked + .box svg { visibility: visible; }
+.check input:focus-visible + .box { outline: 2px solid var(--ink); outline-offset: 3px; }
+.check input:disabled + .box { opacity: 0.6; }
+
+textarea {
+  display: block;
+  width: 100%;
+  padding: 0.85rem 1.1rem;
+  border: var(--line) solid var(--ink);
+  border-radius: 1.1rem;
+  background: var(--field);
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.6;
+  resize: none;
+  overflow-y: hidden;
+}
+#suggestions { max-height: 70dvh; overflow-y: auto; }
+textarea:disabled { opacity: 0.6; }
+textarea::placeholder { color: color-mix(in oklab, var(--ink) 45%, transparent); opacity: 1; }
+textarea[aria-invalid="true"] { border-style: dashed; }
+
+/* All bold text, in body copy and notes, uses one weight. */
+b, .note code { font-weight: 800; }
+
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+/* Messages under a field: a filled ink mark, then the text. */
+.note {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.35rem;
+}
+.note li { text-wrap: pretty; }
+.note li::before {
+  content: "!";
+  display: inline-block;
+  margin-right: 0.6rem;
+  width: 1.2em;
+  height: 1.2em;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--primary);
+  font-size: 0.8em;
+  font-weight: 600;
+  line-height: 1.2em;
+  text-align: center;
+  transform: translateY(-0.1em);
+}
+.note code { font: inherit; overflow-wrap: anywhere; }
+
+/* The access note's button sits in the text, so it's smaller than the others. */
+#access .btn { min-height: 2.25rem; margin-left: 0.25rem; padding: 0 1rem; font-size: 0.95rem; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: inset 0 0 0 var(--line) var(--ink);
+  color: var(--ink);
+  font: 600 1rem var(--font);
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn:hover { background: color-mix(in oklab, var(--ink) 12%, transparent); }
+.btn.cut-out:hover { filter: brightness(1.35); }
+.btn:disabled { opacity: 0.4; cursor: default; background: transparent; }
+.btn .icon { width: 1.1em; height: 1.1em; margin: 0 -0.2em 0 0.4em; fill: currentColor; }
+
+.intro { margin-bottom: clamp(2.5rem, 6vw, 3.75rem); }
+.lede { max-width: 36rem; margin: 0 0 1.5rem; font-size: 1.125rem; text-wrap: pretty; }
+
+.intro-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+/* Fixed in the corner so it's in view wherever you're editing. */
+.status {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  margin: 0;
+  max-width: calc(100vw - 2rem);
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--primary);
+  font-weight: 600;
+  box-shadow: 0 6px 20px -8px color-mix(in oklab, var(--ink) 60%, transparent);
+}
+.status[data-state="saving"] {
+  background: var(--field);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 var(--line) var(--ink), 0 6px 20px -8px color-mix(in oklab, var(--ink) 40%, transparent);
+}
+.status[data-state="error"]::before {
+  content: "!";
+  display: inline-block;
+  margin-right: 0.5rem;
+  width: 1.2em;
+  height: 1.2em;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--ink);
+  font-size: 0.8em;
+  line-height: 1.2em;
+  text-align: center;
+  transform: translateY(-0.1em);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

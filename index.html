@@ -8,16 +8,21 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Instead">
   <meta property="og:description" content="Fun, free and fulfilling activities to do instead of falling into a screen.">
-  <meta property="og:image" content="og-image.jpg">
+  <meta property="og:image" content="https://jackbush.github.io/instead/og-image.jpg">
   <meta property="og:image:width" content="2400">
   <meta property="og:image:height" content="1260">
   <meta property="og:image:alt" content="“Draw something that makes you feel joy” in large serif type on a soft lilac-to-cyan gradient.">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Gloock&family=Hanken+Grotesk:wght@500&display=block" rel="stylesheet">
+  <link rel="icon" href="icons/icon-16.png" sizes="16x16">
+  <link rel="icon" href="icons/icon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="cutout.css">
+  <!-- All scripts are separate files: the extension serves this page, and
+       extensions block scripts written inline. -->
   <script src="okhsl.js"></script>
   <script src="background.js"></script>
+  <script src="cutout.js"></script>
   <style>
     :root {
       /* --primary and --ink are set from the params by applyColours(). */
@@ -48,45 +53,65 @@
       z-index: -1;
     }
 
-    #activity {
+    #suggestion {
       align-self: end;
       margin: 0;
       max-width: 14ch;
       font-family: Gloock, Georgia, serif;
       font-weight: 400;
       font-size: clamp(3.15rem, 9.9vw, 9rem);
-      line-height: 0.95;
+      /* Gloock's ascenders and descenders together span 1.012em; this keeps a
+         hairline gap between a "g" and an "l" on the line below. */
+      line-height: 1.04;
       letter-spacing: -0.02em;
       text-wrap: pretty;
     }
 
-    #activity a {
+    #suggestion a {
       color: inherit;
       text-decoration-thickness: 0.06em;
       text-underline-offset: 0.1em;
     }
 
-    #next {
+    /* Both buttons share size and shape. The primary is a cut-out button
+       (cutout.css); the secondary is outlined. */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4em;
       font-family: "Hanken Grotesk", system-ui, sans-serif;
       font-weight: 500;
       font-size: clamp(1rem, 1.6vw, 1.25rem);
       padding: 0.6em 1.4em;
       border: 0;
       border-radius: 999px;
-      /* The pill is drawn by the SVG with the label masked out, so the
-         background shows through the letters; the span sizes the button. */
-      position: relative;
-      overflow: hidden;
-      background: none;
-      color: transparent;
       cursor: pointer;
     }
-    #next svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-    #next .pill { fill: var(--ink); }
-    #next text { font: inherit; fill: #000; }
+    .btn:hover { filter: brightness(0.7); }
+    .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+    .btn .icon { flex: none; width: 1.1em; height: 1.1em; }
 
-    #next:hover { filter: brightness(0.7); }
-    #next:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+    /* Beside the primary button, or under it on phones, out of the layout so
+       the primary button stays put. */
+    #actions { position: relative; display: grid; }
+    #from {
+      position: absolute;
+      top: 0;
+      left: 100%;
+      margin-left: 0.75rem;
+      white-space: nowrap;
+      /* An inset shadow, not a border, so the size matches the primary exactly
+         at any pixel ratio (borders snap to whole device pixels). */
+      box-shadow: inset 0 0 0 1.5px var(--ink);
+      background: transparent;
+      color: var(--ink);
+      opacity: 0;
+      transition: opacity 400ms ease-out;
+    }
+    #from.visible { opacity: 1; }
+    #from svg { fill: currentColor; }
+    @media (prefers-reduced-motion: reduce) { #from { transition: none; } }
 
     #params {
       position: fixed;
@@ -113,101 +138,22 @@
     #params form button { margin: 0.25rem 0 0.25rem; font: inherit; padding: 0.4rem 0.8rem; border: 1px solid #d0d0d4; border-radius: 6px; background: #fff; cursor: pointer; }
 
     @media (max-width: 600px) {
-      #next { width: 100%; }
+      #actions, #next { width: 100%; }
+      #from { top: 100%; left: 0; width: 100%; margin: 0.75rem 0 0; }
     }
   </style>
 </head>
 <body>
-  <h1 id="activity" aria-live="polite"></h1>
-  <button id="next" type="button"><span>I don't want to do that</span><svg aria-hidden="true">
-    <mask id="label-cut"><rect width="100%" height="100%" fill="#fff"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="central"></text></mask>
-    <rect class="pill" width="100%" height="100%" mask="url(#label-cut)"/>
-  </svg></button>
+  <h1 id="suggestion" aria-live="polite"></h1>
+  <div id="actions">
+    <button id="next" class="btn cut-out" type="button"><span>Suggest something else</span><svg class="icon" aria-hidden="true" viewBox="0 0 256 256"><path d="M240.49,175.51a12,12,0,0,1,0,17l-24,24a12,12,0,0,1-17-17L203,196h-2.09a76.17,76.17,0,0,1-61.85-31.83L97.38,105.78A52.1,52.1,0,0,0,55.06,84H32a12,12,0,0,1,0-24H55.06a76.17,76.17,0,0,1,61.85,31.83l41.71,58.39A52.1,52.1,0,0,0,200.94,172H203l-3.52-3.51a12,12,0,0,1,17-17Zm-95.62-72.62a12,12,0,0,0,16.93-1.13A52,52,0,0,1,200.94,84H203l-3.52,3.51a12,12,0,0,0,17,17l24-24a12,12,0,0,0,0-17l-24-24a12,12,0,0,0-17,17L203,60h-2.09a76,76,0,0,0-57.2,26A12,12,0,0,0,144.87,102.89Zm-33.74,50.22a12,12,0,0,0-16.93,1.13A52,52,0,0,1,55.06,172H32a12,12,0,0,0,0,24H55.06a76,76,0,0,0,57.2-26A12,12,0,0,0,111.13,153.11Z"/></svg></button>
+  </div>
   <canvas id="bg" aria-hidden="true"></canvas>
   <aside id="params" hidden>
     <h1><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm88-29.84q.06-2.16,0-4.32l14.92-18.64a8,8,0,0,0,1.48-7.06,107.21,107.21,0,0,0-10.88-26.25,8,8,0,0,0-6-3.93l-23.72-2.64q-1.48-1.56-3-3L186,40.54a8,8,0,0,0-3.94-6,107.71,107.71,0,0,0-26.25-10.87,8,8,0,0,0-7.06,1.49L130.16,40Q128,40,125.84,40L107.2,25.11a8,8,0,0,0-7.06-1.48A107.6,107.6,0,0,0,73.89,34.51a8,8,0,0,0-3.93,6L67.32,64.27q-1.56,1.49-3,3L40.54,70a8,8,0,0,0-6,3.94,107.71,107.71,0,0,0-10.87,26.25,8,8,0,0,0,1.49,7.06L40,125.84Q40,128,40,130.16L25.11,148.8a8,8,0,0,0-1.48,7.06,107.21,107.21,0,0,0,10.88,26.25,8,8,0,0,0,6,3.93l23.72,2.64q1.49,1.56,3,3L70,215.46a8,8,0,0,0,3.94,6,107.71,107.71,0,0,0,26.25,10.87,8,8,0,0,0,7.06-1.49L125.84,216q2.16.06,4.32,0l18.64,14.92a8,8,0,0,0,7.06,1.48,107.21,107.21,0,0,0,26.25-10.88,8,8,0,0,0,3.93-6l2.64-23.72q1.56-1.48,3-3L215.46,186a8,8,0,0,0,6-3.94,107.71,107.71,0,0,0,10.87-26.25,8,8,0,0,0-1.49-7.06Zm-16.1-6.5a73.93,73.93,0,0,1,0,8.68,8,8,0,0,0,1.74,5.48l14.19,17.73a91.57,91.57,0,0,1-6.23,15L187,173.11a8,8,0,0,0-5.1,2.64,74.11,74.11,0,0,1-6.14,6.14,8,8,0,0,0-2.64,5.1l-2.51,22.58a91.32,91.32,0,0,1-15,6.23l-17.74-14.19a8,8,0,0,0-5-1.75h-.48a73.93,73.93,0,0,1-8.68,0,8,8,0,0,0-5.48,1.74L100.45,215.8a91.57,91.57,0,0,1-15-6.23L82.89,187a8,8,0,0,0-2.64-5.1,74.11,74.11,0,0,1-6.14-6.14,8,8,0,0,0-5.1-2.64L46.43,170.6a91.32,91.32,0,0,1-6.23-15l14.19-17.74a8,8,0,0,0,1.74-5.48,73.93,73.93,0,0,1,0-8.68,8,8,0,0,0-1.74-5.48L40.2,100.45a91.57,91.57,0,0,1,6.23-15L69,82.89a8,8,0,0,0,5.1-2.64,74.11,74.11,0,0,1,6.14-6.14A8,8,0,0,0,82.89,69L85.4,46.43a91.32,91.32,0,0,1,15-6.23l17.74,14.19a8,8,0,0,0,5.48,1.74,73.93,73.93,0,0,1,8.68,0,8,8,0,0,0,5.48-1.74L155.55,40.2a91.57,91.57,0,0,1,15,6.23L173.11,69a8,8,0,0,0,2.64,5.1,74.11,74.11,0,0,1,6.14,6.14,8,8,0,0,0,5.1,2.64l22.58,2.51a91.32,91.32,0,0,1,6.23,15l-14.19,17.74A8,8,0,0,0,199.87,123.66Z"/></svg>Settings</h1>
     <form></form>
   </aside>
 
-  <script>
-    const activity = document.getElementById("activity");
-    const next = document.getElementById("next");
-    next.querySelector("text").textContent = next.querySelector("span").textContent;
-    let activities = [];
-    let current = -1;
-
-    // Glue the last two words so a wrap never leaves one word alone on the
-    // bottom line, escape the line, then turn [text](url) into a link.
-    function render(line) {
-      const escaped = line
-        .replace(/ +(\S+)$/, " $1")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-      return escaped.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
-    }
-
-    function show() {
-      let i;
-      do i = Math.floor(Math.random() * activities.length);
-      while (activities.length > 1 && i === current);
-      current = i;
-      activity.innerHTML = render(activities[i]);
-    }
-
-    // Every suggestion (page load or button) gets a new primary hue from the
-    // hue slider's range. A button press also moves at least 30° round the
-    // wheel from the current hue, either way.
-    const MIN_HUE_STEP = 30;
-    const { min: HUE_MIN, max: HUE_MAX } = PARAMS.find((p) => p.key === "h");
-    const HUES = Array.from({ length: HUE_MAX - HUE_MIN + 1 }, (_, i) => HUE_MIN + i);
-    const pick = (list) => list[Math.floor(Math.random() * list.length)];
-    const randomHue = () => pick(HUES);
-    const nextHue = (h) => pick(HUES.filter((x) => {
-      const d = Math.abs(x - h);
-      return Math.min(d, 360 - d) >= MIN_HUE_STEP;
-    }));
-
-    next.addEventListener("click", () => {
-      show();
-      const hue = document.querySelector('#params [name="h"]');
-      hue.value = nextHue(params.h);
-      hue.dispatchEvent(new Event("input")); // updates params, readout and colours
-    });
-
-    // Background and its params sidebar (background.js).
-    const background = createBackground(document.getElementById("bg"));
-    let frame = 0;
-    const redraw = () => {
-      if (!background || frame) return;
-      frame = requestAnimationFrame(() => { frame = 0; background.draw(); });
-    };
-    const panel = document.getElementById("params");
-    params.h = randomHue();
-    buildSidebar(panel, () => { applyColours(); redraw(); });
-    if (background) {
-      const newCurve = document.createElement("button");
-      newCurve.type = "button";
-      newCurve.textContent = "New curve";
-      newCurve.addEventListener("click", background.newArc);
-      panel.querySelector('[name="guide"]').closest("label").after(newCurve);
-    }
-    applyColours();
-    redraw();
-    addEventListener("resize", redraw);
-
-    // \ shows and hides the settings.
-    addEventListener("keydown", (e) => {
-      if (e.key === "\\" && !e.repeat) panel.hidden = !panel.hidden;
-    });
-
-    fetch("activities.txt")
-      .then((r) => r.text())
-      .then((text) => {
-        activities = text.split("\n").map((l) => l.trim()).filter(Boolean);
-        show();
-      });
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
