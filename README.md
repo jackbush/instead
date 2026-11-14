@@ -41,7 +41,7 @@ To install it from the build:
 - **Chrome:** open `chrome://extensions`, turn on Developer mode, choose Load unpacked, and pick `dist/chrome`.
 - **Firefox:** open `about:debugging#/runtime/this-firefox`, choose Load Temporary Add-on, and pick `dist/firefox/manifest.json`. It's removed when Firefox restarts; to keep it, use Firefox Developer Edition: set `xpinstall.signatures.required` to false in `about:config`, then install `dist/instead-firefox.zip` from `about:addons` with Install Add-on From File. Or have Mozilla sign it for free as an unlisted add-on. If settings ask for permission under the sites, click Allow.
 
-Listings on the Chrome Web Store and Firefox Add-ons are coming. To check or sign the Firefox build with Mozilla's `web-ext` tool, use Node 22; it crashes on Node 24.
+Instead will be available soon on [Firefox Add-ons](https://addons.mozilla.org/en-GB/firefox/addon/instead-do-this/) and the [Chrome Web Store](https://chromewebstore.google.com/detail/pjlabllieiaoigjcolbkjafijbgomeoh). To check or sign the Firefox build with Mozilla's `web-ext` tool, use Node 22; it crashes on Node 24.
 
 ## Running locally and editing the page
 
@@ -80,3 +80,7 @@ A pre-commit hook in `.githooks/` runs it whenever a commit changes the page, se
 ```bash
 git config core.hooksPath .githooks
 ```
+
+## Licence
+
+MIT; see [LICENSE](LICENSE). The bundled fonts are under the SIL Open Font License (see [fonts/README.md](fonts/README.md)).
