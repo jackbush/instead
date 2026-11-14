@@ -3,8 +3,10 @@
 // darker primary below. Colours are set in OKHSL from the params sidebar.
 
 const PARAMS = [
+  { group: "All colours" },
+  { key: "cap", label: "Max chroma", min: 0, max: 0.32, step: 0.01, value: 0.15 },
   { group: "Primary (bottom)" },
-  { key: "h", label: "Hue", min: 0, max: 360, value: 249 },
+  { key: "h", label: "Hue", min: 0, max: 359, value: 249 },
   { key: "s", label: "Saturation", min: 0, max: 100, value: 100 },
   { key: "l", label: "Lightness", min: 0, max: 100, value: 90 },
   { group: "Secondary (top), offset from primary" },
@@ -17,7 +19,7 @@ const PARAMS = [
   { group: "Text and button" },
   { key: "th", label: "Hue offset", min: -180, max: 180, value: -120 },
   { key: "ts", label: "Saturation", min: 0, max: 100, value: 100 },
-  { key: "tl", label: "Lightness", min: 0, max: 100, value: 12 },
+  { key: "tl", label: "Lightness", min: 0, max: 100, value: 5 },
 ];
 
 const params = Object.fromEntries(PARAMS.filter((p) => p.key).map((p) => [p.key, p.value]));
@@ -25,14 +27,23 @@ const params = Object.fromEntries(PARAMS.filter((p) => p.key).map((p) => [p.key,
 const clamp01 = (x) => Math.min(1, Math.max(0, x));
 const wrapHue = (h) => ((h % 360) + 360) % 360;
 
+// OKHSL saturation is relative to each hue's gamut limit, so at the same
+// saturation yellow-greens get far more colour than blues or pinks. Capping
+// chroma (OKLab distance from grey) evens that out.
+function okhsl(h, s, l) {
+  const [L, a, b] = okhslToOklab(h, s, l);
+  const k = Math.min(1, params.cap / (Math.hypot(a, b) || 1));
+  return [L, a * k, b * k];
+}
+
 function colours() {
   const { h, s, l, dh, ds, dl, th, ts, tl } = params;
   return {
-    primary: okhslToOklab(h, s / 100, l / 100),
-    secondary: okhslToOklab(wrapHue(h + dh), clamp01((s + ds) / 100), clamp01((l + dl) / 100)),
-    text: okhslToOklab(wrapHue(h + th), ts / 100, tl / 100),
+    primary: okhsl(h, s / 100, l / 100),
+    secondary: okhsl(wrapHue(h + dh), clamp01((s + ds) / 100), clamp01((l + dl) / 100)),
+    text: okhsl(wrapHue(h + th), ts / 100, tl / 100),
     // Opposite of the primary: the complementary hue at the inverted lightness.
-    guide: okhslToOklab(wrapHue(h + 180), s / 100, 1 - l / 100),
+    guide: okhsl(wrapHue(h + 180), s / 100, 1 - l / 100),
   };
 }
 
@@ -195,7 +206,7 @@ function buildSidebar(panel, onChange) {
       input.addEventListener("input", () => { params[p.key] = input.checked; onChange(); });
     } else {
       row.innerHTML = `<span>${p.label}</span><output></output>
-        <input type="range" name="${p.key}" min="${p.min}" max="${p.max}" step="1" value="${params[p.key]}">`;
+        <input type="range" name="${p.key}" min="${p.min}" max="${p.max}" step="${p.step ?? 1}" value="${params[p.key]}">`;
       const input = row.querySelector("input"), out = row.querySelector("output");
       out.textContent = params[p.key];
       input.addEventListener("input", () => {

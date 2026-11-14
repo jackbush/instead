@@ -20,13 +20,13 @@
     body {
       margin: 0;
       min-height: 100dvh;
-      /* The button sits a third of the way up the screen whatever the text
+      /* The button sits a fifth of the way up the screen whatever the text
          length; the text's bottom row hugs it and longer text grows upward. */
       display: grid;
       grid-template-rows: 1fr auto;
       justify-items: start;
       gap: clamp(2rem, 5vw, 3.5rem);
-      padding: var(--pad) var(--pad) 33dvh;
+      padding: var(--pad) var(--pad) 20dvh;
       background: var(--primary);
       color: var(--ink);
     }
@@ -127,9 +127,11 @@
     let activities = [];
     let current = -1;
 
-    // Escape the line, then turn [text](url) into a link.
+    // Glue the last two words so a wrap never leaves one word alone on the
+    // bottom line, escape the line, then turn [text](url) into a link.
     function render(line) {
       const escaped = line
+        .replace(/ +(\S+)$/, " $1")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -145,12 +147,18 @@
       activity.innerHTML = render(activities[i]);
     }
 
-    // Every suggestion (page load or button) gets a new primary hue.
-    const randomHue = () => Math.floor(Math.random() * 360);
-    // A button press moves at least 30° round the wheel, either way, uniformly.
+    // Every suggestion (page load or button) gets a new primary hue from the
+    // hue slider's range. A button press also moves at least 30° round the
+    // wheel from the current hue, either way.
     const MIN_HUE_STEP = 30;
-    const nextHue = (h) =>
-      (h + MIN_HUE_STEP + Math.floor(Math.random() * (361 - 2 * MIN_HUE_STEP))) % 360;
+    const { min: HUE_MIN, max: HUE_MAX } = PARAMS.find((p) => p.key === "h");
+    const HUES = Array.from({ length: HUE_MAX - HUE_MIN + 1 }, (_, i) => HUE_MIN + i);
+    const pick = (list) => list[Math.floor(Math.random() * list.length)];
+    const randomHue = () => pick(HUES);
+    const nextHue = (h) => pick(HUES.filter((x) => {
+      const d = Math.abs(x - h);
+      return Math.min(d, 360 - d) >= MIN_HUE_STEP;
+    }));
 
     next.addEventListener("click", () => {
       show();
