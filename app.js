@@ -17,10 +17,10 @@ async function loadSuggestions() {
 
 // The line as text and links: [text](url) becomes a link when the url is
 // http or https, and stays as plain text otherwise. As in Markdown, the url
-// may hold balanced parentheses, like Wikipedia's. The last two words are
-// glued so a wrap never leaves one word alone on the bottom line.
-function render(line) {
-  const glued = line.replace(/ +(\S+)$/, "\u00a0$1");
+// may hold balanced parentheses, like Wikipedia's. With `glue`, the last two
+// words are joined so a wrap never leaves one word alone on the bottom line.
+function render(line, glue) {
+  const glued = glue ? line.replace(/ +(\S+)$/, "\u00a0$1") : line;
   const nodes = [];
   let from = 0;
   for (const m of glued.matchAll(/\[([^\]]+)\]\(((?:[^()\s]|\([^()\s]*\))+)\)/g)) {
@@ -39,8 +39,18 @@ function show() {
   do i = Math.floor(Math.random() * suggestions.length);
   while (suggestions.length > 1 && i === current);
   current = i;
-  suggestion.replaceChildren(...render(suggestions[i]));
+  paint();
 }
+
+// Phones turn the glue off (index.html sets --glue to 0): two long words
+// together can be wider than the screen. Repaint when that changes.
+let glued;
+const glues = () => getComputedStyle(suggestion).getPropertyValue("--glue").trim() !== "0";
+function paint() {
+  glued = glues();
+  suggestion.replaceChildren(...render(suggestions[current], glued));
+}
+addEventListener("resize", () => { if (current >= 0 && glues() !== glued) paint(); });
 
 cutOut(next);
 

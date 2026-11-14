@@ -198,6 +198,8 @@ function applyColours() {
   const root = document.documentElement.style;
   root.setProperty("--primary", oklabCss(c.primary));
   root.setProperty("--ink", oklabCss(c.text));
+  // Browsers that tint their bars from this (Chrome on Android) match the text.
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", oklabHex(c.text));
 }
 
 function buildSidebar(panel, onChange) {

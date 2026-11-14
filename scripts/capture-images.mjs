@@ -2,8 +2,9 @@
 //   og-image.jpg                 link-preview image, button without its label
 //   .github/cover.jpg            README and website cover
 //   store/main.png, settings.png store screenshots
-// Every image shows the same moment: one suggestion, hue 200 and one fixed
-// gradient curve. Each is drawn at 3x and scaled down for crisp type. Chrome's
+//   store/tile.png               Chrome Web Store small promo tile
+//   store/marquee-tile.png       Chrome Web Store marquee promo tile
+// Every image shows the same moment: hue 200 and one fixed gradient curve. Each is drawn at 3x and scaled down for crisp type. Chrome's
 // software rendering can differ by a shade between runs, so an image is only
 // replaced when the new one visibly differs from it.
 //
@@ -31,6 +32,14 @@ const IMAGES = [
   { out: ".github/cover.jpg", page: "index.html", width: 1200, height: 800, scale: 2 },
   { out: "store/main.png", page: "index.html", width: 1280, height: 800, scale: 1 },
   { out: "store/settings.png", page: "options.html", width: 1280, height: 800, scale: 1 },
+  {
+    out: "store/tile.png", page: "index.html", width: 440, height: 280, scale: 1,
+    tile: { text: "Find a leaf and draw it", textSize: 56, nameSize: 76, pad: 32, gap: 10 },
+  },
+  {
+    out: "store/marquee-tile.png", page: "index.html", width: 1400, height: 560, scale: 1,
+    tile: { text: SUGGESTION, textSize: 112, nameSize: 44, pad: 80, gap: 20 },
+  },
 ];
 
 // Math.random as a fixed sequence: the hue first (settings picks it with the
@@ -55,11 +64,30 @@ const FAKE_EXTENSION = `globalThis.browser = {
   },
 };`;
 
+// The promo tiles: the Instead page with the hand and name above a
+// suggestion, in place of the button. Sizes are in CSS pixels.
+const tileCss = ({ textSize, nameSize, pad, gap }) => `
+  body { display: flex; flex-direction: column; justify-content: center; gap: ${gap}px; padding: 0 ${pad}px; }
+  #actions { display: none; }
+  #suggestion { align-self: auto; max-width: none; font-size: ${textSize}px; }
+  .tile-name {
+    display: flex; align-items: center; gap: 0.08em; margin: 0;
+    font: 400 ${nameSize}px/1.04 Gloock, Georgia, serif; letter-spacing: -0.02em;
+  }
+  .tile-name img { height: 0.95em; }
+`;
+
 // The Instead page: the suggestion, the hue (through its slider, as a visitor
-// would set it) and the curve.
-const SET_UP_MAIN = (hideLabel) => `(async () => {
+// would set it) and the curve. A tile also gets the tile layout.
+const SET_UP_MAIN = ({ hideLabel, tile }) => `(async () => {
   while (suggestions.length < 2) await new Promise((r) => setTimeout(r, 50));
-  suggestions.splice(0, suggestions.length, ${JSON.stringify(SUGGESTION)});
+  ${tile ? `
+  document.head.append(Object.assign(document.createElement("style"), { textContent: ${JSON.stringify(tileCss(tile))} }));
+  const name = Object.assign(document.createElement("p"), { className: "tile-name" });
+  name.append(Object.assign(document.createElement("img"), { src: "icons/favicon.svg", alt: "" }), "Instead");
+  document.body.prepend(name);
+  await name.querySelector("img").decode();` : ""}
+  suggestions.splice(0, suggestions.length, ${JSON.stringify(tile?.text ?? SUGGESTION)});
   current = -1;
   show();
   const hue = document.querySelector('#params [name="h"]');
@@ -136,7 +164,7 @@ async function openChrome() {
 }
 
 async function capture({ send, next }, origin, image) {
-  const { page, width, height, scale, hideLabel } = image;
+  const { page, width, height, scale } = image;
   await send("Emulation.setDeviceMetricsOverride", {
     width, height, deviceScaleFactor: scale * SUPERSAMPLE, mobile: false,
   });
@@ -148,7 +176,7 @@ async function capture({ send, next }, origin, image) {
   await loaded;
   for (const identifier of added) await send("Page.removeScriptToEvaluateOnNewDocument", { identifier });
 
-  const setUp = page === "options.html" ? SET_UP_SETTINGS : SET_UP_MAIN(hideLabel);
+  const setUp = page === "options.html" ? SET_UP_SETTINGS : SET_UP_MAIN(image);
   const result = await send("Runtime.evaluate", { expression: setUp, awaitPromise: true });
   if (result.exceptionDetails) throw new Error(`${image.out}: ${result.exceptionDetails.exception?.description}`);
   await send("Runtime.evaluate", {

@@ -119,3 +119,11 @@ function okhslToOklab(h, s, l) {
 function oklabCss([L, a, b]) {
   return `oklab(${L.toFixed(4)} ${a.toFixed(4)} ${b.toFixed(4)})`;
 }
+
+// "#rrggbb", clipped to sRGB, for places that want plain hex (theme-color).
+function oklabHex(lab) {
+  const gamma = (x) => (x <= 0.0031308 ? 12.92 * x : 1.055 * x ** (1 / 2.4) - 0.055);
+  return "#" + oklabToLinearSrgb(...lab)
+    .map((x) => Math.round(Math.min(1, Math.max(0, gamma(x))) * 255).toString(16).padStart(2, "0"))
+    .join("");
+}

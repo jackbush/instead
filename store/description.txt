@@ -1,0 +1,14 @@
+Instead turns the sites you lose time to into a nudge towards something better.
+
+Open Facebook, Instagram, Reddit or TikTok and, in place of the feed, you get one big suggestion of something fun, free and fulfilling to do: go for a run, tell a friend why you love them, find a leaf and draw it. Not feeling it? Ask for another. Still want the site? After five seconds, a "Take me to …" button lets that tab through for 15 minutes.
+
+Blockers say no. Instead says what else you could do, and leaves the choice with you.
+
+Make it yours
+• Choose which sites to redirect. Subdomains are included.
+• Keep the useful parts: let direct messages through, or allow particular pages, such as a single subreddit.
+• Write your own suggestions, one per line, with links if you like.
+• Open settings from the toolbar button. Changes save as you go.
+
+Private by design
+Instead has no server and collects nothing. Your settings stay in your browser, which syncs them between your devices if you've turned on syncing. Redirects happen inside the browser before the site loads, and Instead only asks for access to the sites on your list.

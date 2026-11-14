@@ -14,12 +14,15 @@ body {
   margin: 0;
   min-height: 100dvh;
   padding: var(--pad);
-  background: var(--primary);
+  background: var(--ink);
   color: var(--ink);
   font: 500 1rem/1.5 var(--font);
 }
 
+/* The page behind is ink, so browser bars match the text; the canvas falls
+   back to the primary if WebGL is unavailable. */
 #bg {
+  background: var(--primary);
   position: fixed;
   inset: 0;
   width: 100%;

@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000">
   <title>Instead</title>
   <meta name="description" content="Fun, free and fulfilling activities to do instead of falling into a screen.">
   <meta property="og:type" content="website">
@@ -41,11 +42,14 @@
       justify-items: start;
       gap: clamp(2rem, 5vw, 3.5rem);
       padding: var(--pad) var(--pad) 20dvh;
-      background: var(--primary);
+      background: var(--ink);
       color: var(--ink);
     }
 
+    /* The page behind is ink, so Safari tints its bars to match the text;
+       the canvas falls back to the primary if WebGL is unavailable. */
     #bg {
+      background: var(--primary);
       position: fixed;
       inset: 0;
       width: 100%;
@@ -59,7 +63,7 @@
       max-width: 14ch;
       font-family: Gloock, Georgia, serif;
       font-weight: 400;
-      font-size: clamp(3.15rem, 9.9vw, 9rem);
+      font-size: clamp(2.75rem, 9.9vw, 9rem);
       /* Gloock's ascenders and descenders together span 1.012em; this keeps a
          hairline gap between a "g" and an "l" on the line below. */
       line-height: 1.04;
@@ -138,6 +142,9 @@
     #params form button { margin: 0.25rem 0 0.25rem; font: inherit; padding: 0.4rem 0.8rem; border: 1px solid #d0d0d4; border-radius: 6px; background: #fff; cursor: pointer; }
 
     @media (max-width: 600px) {
+      /* Narrow screens wrap plainly: no glued last words (app.js reads
+         --glue) and no rebalanced lines. */
+      #suggestion { --glue: 0; text-wrap: wrap; }
       #actions, #next { width: 100%; }
       #from { top: 100%; left: 0; width: 100%; margin: 0.75rem 0 0; }
     }

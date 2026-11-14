@@ -15,4 +15,4 @@ fi
 
 echo "Re-rendering images (scripts/capture-images.mjs)..."
 node scripts/capture-images.mjs
-git add og-image.jpg .github/cover.jpg store
+git add og-image.jpg .github/cover.jpg store/*.png

@@ -67,7 +67,7 @@ Changes to the page show on the website straight away. For the extension, rebuil
 
 ## Images
 
-The link-preview image (`og-image.jpg`), the cover (`.github/cover.jpg`) and the store screenshots (`store/`) are all rendered from the built extension in headless Chrome, showing the same suggestion, hue and gradient:
+The link-preview image (`og-image.jpg`), the cover (`.github/cover.jpg`) and the store images (`store/`: two screenshots and the Chrome Web Store's small and marquee promo tiles) are all rendered from the built extension in headless Chrome, with the same hue and gradient:
 
 ```bash
 node scripts/capture-images.mjs
