@@ -1,4 +1,4 @@
-# Distraction distractor
+# Instead
 
 Fun, free and fulfilling activities to do instead of falling into a screen.
 
