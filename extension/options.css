@@ -1,9 +1,6 @@
 :root {
-  /* --primary and --ink are set from the params by applyColours(). */
-  --primary: oklab(0.9 -0.03 -0.06);
-  --ink: oklab(0.2 0 -0.04);
+  /* --primary, --ink and --line are in brand.css. */
   --pad: clamp(1.5rem, 6vw, 6rem);
-  --line: 1.5px;
   --field: #fff;
   --font: "Hanken Grotesk", system-ui, sans-serif;
 }
@@ -45,7 +42,7 @@ h1 {
 }
 h2 {
   font-size: clamp(1.9rem, 4vw, 2.5rem);
-  line-height: 1.05;
+  line-height: 1.04;
 }
 
 section + section { margin-top: clamp(2.25rem, 5vw, 3.25rem); }
@@ -113,7 +110,7 @@ b, .note code { font-weight: 800; }
 
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
 
-/* Messages under a field: a filled ink mark, then the text. */
+/* Messages under a field: a warning icon, then the text. */
 .note {
   margin: 0.75rem 0 0;
   padding: 0;
@@ -123,44 +120,20 @@ b, .note code { font-weight: 800; }
 }
 .note li { text-wrap: pretty; }
 .note li::before {
-  content: "!";
+  content: "";
   display: inline-block;
-  margin-right: 0.6rem;
-  width: 1.2em;
-  height: 1.2em;
-  border-radius: 50%;
+  width: 1.15em;
+  height: 1.15em;
+  margin-right: 0.5rem;
+  vertical-align: -0.2em;
   background: var(--ink);
-  color: var(--primary);
-  font-size: 0.8em;
-  font-weight: 600;
-  line-height: 1.2em;
-  text-align: center;
-  transform: translateY(-0.1em);
+  mask: var(--icon-warning) center / contain no-repeat;
 }
-.note code { font: inherit; overflow-wrap: anywhere; }
+.note code { font-family: inherit; font-size: inherit; overflow-wrap: anywhere; }
 
 /* The access note's button sits in the text, so it's smaller than the others. */
 #access .btn { min-height: 2.25rem; margin-left: 0.25rem; padding: 0 1rem; font-size: 0.95rem; }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.75rem;
-  padding: 0 1.5rem;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  box-shadow: inset 0 0 0 var(--line) var(--ink);
-  color: var(--ink);
-  font: 600 1rem var(--font);
-  text-decoration: none;
-  cursor: pointer;
-}
-.btn:hover { background: color-mix(in oklab, var(--ink) 12%, transparent); }
-.btn.cut-out:hover { filter: brightness(1.35); }
-.btn:disabled { opacity: 0.4; cursor: default; background: transparent; }
-.btn .icon { width: 1.1em; height: 1.1em; margin: 0 -0.2em 0 0.4em; fill: currentColor; }
 
 .intro { margin-bottom: clamp(2.5rem, 6vw, 3.75rem); }
 .lede { max-width: 36rem; margin: 0 0 1.5rem; font-size: 1.125rem; text-wrap: pretty; }
@@ -187,18 +160,14 @@ b, .note code { font-weight: 800; }
   box-shadow: inset 0 0 0 var(--line) var(--ink), 0 6px 20px -8px color-mix(in oklab, var(--ink) 40%, transparent);
 }
 .status[data-state="error"]::before {
-  content: "!";
+  content: "";
   display: inline-block;
-  margin-right: 0.5rem;
-  width: 1.2em;
-  height: 1.2em;
-  border-radius: 50%;
+  width: 1.15em;
+  height: 1.15em;
+  margin-right: 0.4rem;
+  vertical-align: -0.2em;
   background: var(--primary);
-  color: var(--ink);
-  font-size: 0.8em;
-  line-height: 1.2em;
-  text-align: center;
-  transform: translateY(-0.1em);
+  mask: var(--icon-warning) center / contain no-repeat;
 }
 
 .visually-hidden {

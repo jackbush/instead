@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000">
+  <title>Instead</title>
+  <meta name="description" content="Fun, free and fulfilling activities to do instead of falling into a screen.">
+  <link rel="icon" href="icons/icon-16.png" sizes="16x16">
+  <link rel="icon" href="icons/icon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="brand.css">
+  <!-- All scripts are separate files: the extension serves this page, and
+       extensions block scripts written inline. -->
+  <script src="okhsl.js"></script>
+  <script src="background.js"></script>
+  <script src="cutout.js"></script>
+  <style>
+    :root {
+      /* --primary and --ink are set from the params by applyColours(). */
+      --pad: clamp(1.5rem, 6vw, 6rem);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      /* The button sits a fifth of the way up the screen whatever the text
+         length; the text's bottom row hugs it and longer text grows upward. */
+      display: grid;
+      grid-template-rows: 1fr auto;
+      justify-items: start;
+      gap: clamp(2rem, 5vw, 3.5rem);
+      padding: var(--pad) var(--pad) 20dvh;
+      background: var(--ink);
+      color: var(--ink);
+    }
+
+    /* The page behind is ink, so Safari tints its bars to match the text;
+       the canvas falls back to the primary if WebGL is unavailable. */
+    #bg {
+      background: var(--primary);
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    #suggestion {
+      align-self: end;
+      margin: 0;
+      max-width: 14ch;
+      font-family: Gloock, Georgia, serif;
+      font-weight: 400;
+      font-size: clamp(2.75rem, 9.9vw, 9rem);
+      /* Gloock's ascenders and descenders together span 1.012em; this keeps a
+         hairline gap between a "g" and an "l" on the line below. */
+      line-height: 1.04;
+      letter-spacing: -0.02em;
+      text-wrap: pretty;
+    }
+
+    #suggestion a {
+      color: inherit;
+      text-decoration-thickness: 0.06em;
+      text-underline-offset: 0.1em;
+    }
+
+    /* "Take me to …" (outlined; buttons are in brand.css): beside the primary
+       button, or under it on phones, out of the layout so the primary button
+       stays put. */
+    #actions { position: relative; display: grid; }
+    #from {
+      position: absolute;
+      top: 0;
+      left: 100%;
+      margin-left: 0.75rem;
+      opacity: 0;
+      transition: opacity 400ms ease-out;
+    }
+    #from.visible { opacity: 1; }
+    @media (prefers-reduced-motion: reduce) { #from { transition: none; } }
+
+    #params {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      width: 17rem;
+      max-height: calc(100dvh - 2rem);
+      overflow: auto;
+      background: rgb(255 255 255 / 0.94);
+      color: #1d1d1f;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgb(0 0 0 / 0.12);
+      font: 500 13px/1.3 "Hanken Grotesk", system-ui, sans-serif;
+      accent-color: #1d1d1f;
+    }
+    #params h1 { display: flex; align-items: center; gap: 0.4rem; margin: 0; padding: 0.75rem 1rem 0; font-size: 14px; font-weight: 600; }
+    #params h1 svg { width: 16px; height: 16px; }
+    #params form { padding: 0 1rem 1rem; }
+    #params h2 { margin: 1rem 0 0.4rem; font-size: 13px; font-weight: 600; }
+    #params label { display: grid; grid-template-columns: 1fr auto; margin-bottom: 0.35rem; }
+    #params input[type="range"] { grid-column: 1 / -1; width: 100%; margin: 0.15rem 0 0; }
+    #params output { font-variant-numeric: tabular-nums; color: #6b6b70; }
+    #params .check { display: flex; gap: 0.4rem; align-items: center; }
+    #params form button { margin: 0.25rem 0 0.25rem; font: inherit; padding: 0.4rem 0.8rem; border: 1px solid #d0d0d4; border-radius: 6px; background: #fff; cursor: pointer; }
+
+    @media (max-width: 600px) {
+      /* Narrow screens wrap plainly: no glued last words (app.js reads
+         --glue) and no rebalanced lines. */
+      #suggestion { --glue: 0; text-wrap: wrap; }
+      #actions, #next { width: 100%; }
+      #from { top: 100%; left: 0; width: 100%; margin: 0.75rem 0 0; }
+    }
+  </style>
+</head>
+<body>
+  <h1 id="suggestion" aria-live="polite"></h1>
+  <div id="actions">
+    <button id="next" class="btn cut-out" type="button"><span>Suggest something else</span><svg class="icon" aria-hidden="true" viewBox="0 0 256 256"><path d="M240.49,175.51a12,12,0,0,1,0,17l-24,24a12,12,0,0,1-17-17L203,196h-2.09a76.17,76.17,0,0,1-61.85-31.83L97.38,105.78A52.1,52.1,0,0,0,55.06,84H32a12,12,0,0,1,0-24H55.06a76.17,76.17,0,0,1,61.85,31.83l41.71,58.39A52.1,52.1,0,0,0,200.94,172H203l-3.52-3.51a12,12,0,0,1,17-17Zm-95.62-72.62a12,12,0,0,0,16.93-1.13A52,52,0,0,1,200.94,84H203l-3.52,3.51a12,12,0,0,0,17,17l24-24a12,12,0,0,0,0-17l-24-24a12,12,0,0,0-17,17L203,60h-2.09a76,76,0,0,0-57.2,26A12,12,0,0,0,144.87,102.89Zm-33.74,50.22a12,12,0,0,0-16.93,1.13A52,52,0,0,1,55.06,172H32a12,12,0,0,0,0,24H55.06a76,76,0,0,0,57.2-26A12,12,0,0,0,111.13,153.11Z"/></svg></button>
+  </div>
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <aside id="params" hidden>
+    <h1><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm88-29.84q.06-2.16,0-4.32l14.92-18.64a8,8,0,0,0,1.48-7.06,107.21,107.21,0,0,0-10.88-26.25,8,8,0,0,0-6-3.93l-23.72-2.64q-1.48-1.56-3-3L186,40.54a8,8,0,0,0-3.94-6,107.71,107.71,0,0,0-26.25-10.87,8,8,0,0,0-7.06,1.49L130.16,40Q128,40,125.84,40L107.2,25.11a8,8,0,0,0-7.06-1.48A107.6,107.6,0,0,0,73.89,34.51a8,8,0,0,0-3.93,6L67.32,64.27q-1.56,1.49-3,3L40.54,70a8,8,0,0,0-6,3.94,107.71,107.71,0,0,0-10.87,26.25,8,8,0,0,0,1.49,7.06L40,125.84Q40,128,40,130.16L25.11,148.8a8,8,0,0,0-1.48,7.06,107.21,107.21,0,0,0,10.88,26.25,8,8,0,0,0,6,3.93l23.72,2.64q1.49,1.56,3,3L70,215.46a8,8,0,0,0,3.94,6,107.71,107.71,0,0,0,26.25,10.87,8,8,0,0,0,7.06-1.49L125.84,216q2.16.06,4.32,0l18.64,14.92a8,8,0,0,0,7.06,1.48,107.21,107.21,0,0,0,26.25-10.88,8,8,0,0,0,3.93-6l2.64-23.72q1.56-1.48,3-3L215.46,186a8,8,0,0,0,6-3.94,107.71,107.71,0,0,0,10.87-26.25,8,8,0,0,0-1.49-7.06Zm-16.1-6.5a73.93,73.93,0,0,1,0,8.68,8,8,0,0,0,1.74,5.48l14.19,17.73a91.57,91.57,0,0,1-6.23,15L187,173.11a8,8,0,0,0-5.1,2.64,74.11,74.11,0,0,1-6.14,6.14,8,8,0,0,0-2.64,5.1l-2.51,22.58a91.32,91.32,0,0,1-15,6.23l-17.74-14.19a8,8,0,0,0-5-1.75h-.48a73.93,73.93,0,0,1-8.68,0,8,8,0,0,0-5.48,1.74L100.45,215.8a91.57,91.57,0,0,1-15-6.23L82.89,187a8,8,0,0,0-2.64-5.1,74.11,74.11,0,0,1-6.14-6.14,8,8,0,0,0-5.1-2.64L46.43,170.6a91.32,91.32,0,0,1-6.23-15l14.19-17.74a8,8,0,0,0,1.74-5.48,73.93,73.93,0,0,1,0-8.68,8,8,0,0,0-1.74-5.48L40.2,100.45a91.57,91.57,0,0,1,6.23-15L69,82.89a8,8,0,0,0,5.1-2.64,74.11,74.11,0,0,1,6.14-6.14A8,8,0,0,0,82.89,69L85.4,46.43a91.32,91.32,0,0,1,15-6.23l17.74,14.19a8,8,0,0,0,5.48,1.74,73.93,73.93,0,0,1,8.68,0,8,8,0,0,0,5.48-1.74L155.55,40.2a91.57,91.57,0,0,1,15,6.23L173.11,69a8,8,0,0,0,2.64,5.1,74.11,74.11,0,0,1,6.14,6.14,8,8,0,0,0,5.1,2.64l22.58,2.51a91.32,91.32,0,0,1,6.23,15l-14.19,17.74A8,8,0,0,0,199.87,123.66Z"/></svg>Settings</h1>
+    <form></form>
+  </aside>
+
+  <script src="app.js"></script>
+</body>
+</html>

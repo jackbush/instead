@@ -40,7 +40,7 @@
   "optional_host_permissions": ["*://*/*"],
   "web_accessible_resources": [
     {
-      "resources": ["index.html"],
+      "resources": ["demo.html"],
       "matches": ["*://*/*"]
     }
   ],

@@ -103,7 +103,7 @@ async function refreshAccess() {
   if (!missing.length) return access.replaceChildren();
   const button = document.createElement("button");
   button.type = "button";
-  button.className = "btn";
+  button.className = "btn outline";
   button.textContent = "Allow";
   const li = document.createElement("li");
   li.append("Recent changes to this field need your permission to take effect. ", button);

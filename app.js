@@ -42,7 +42,7 @@ function show() {
   paint();
 }
 
-// Phones turn the glue off (index.html sets --glue to 0): two long words
+// Phones turn the glue off (demo.html sets --glue to 0): two long words
 // together can be wider than the screen. Repaint when that changes.
 let glued;
 const glues = () => getComputedStyle(suggestion).getPropertyValue("--glue").trim() !== "0";
@@ -86,7 +86,7 @@ function offerOriginal(from) {
   const name = host.at(-second) ?? host[0];
   const button = document.createElement("button");
   button.id = "from";
-  button.className = "btn";
+  button.className = "btn outline";
   button.type = "button";
   button.innerHTML = '<span></span><svg class="icon" aria-hidden="true" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg>';
   button.firstChild.textContent = `Take me to ${BRAND_NAMES[name] ?? name[0].toUpperCase() + name.slice(1)}`;

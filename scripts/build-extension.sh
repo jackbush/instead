@@ -13,7 +13,7 @@ rm -rf dist/chrome dist/firefox dist/instead-chrome.zip dist/instead-firefox.zip
 for browser in chrome firefox; do
   out="dist/$browser"
   mkdir -p "$out"
-  cp index.html app.js background.js okhsl.js cutout.js cutout.css suggestions.txt "$out/"
+  cp demo.html app.js background.js okhsl.js cutout.js brand.css suggestions.txt "$out/"
   cp -R fonts icons "$out/"
   cp -R extension/. "$out/"
   find "$out" -name .DS_Store -delete

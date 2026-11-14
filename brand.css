@@ -1,0 +1,56 @@
+/* Shared by every page: the colour fallbacks, the line weight, the warning
+   icon and the pill buttons. Pages add only their own layout to these. */
+
+:root {
+  /* Until applyColours() sets the page's hue. */
+  --primary: oklab(0.9 -0.03 -0.06);
+  --ink: oklab(0.2 0 -0.04);
+  --line: 1.5px;
+  /* Phosphor warning-circle (fill), for use as a mask. */
+  --icon-warning: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-8,56a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm8,104a12,12,0,1,1,12-12A12,12,0,0,1,128,184Z"/></svg>');
+}
+
+/* Pill buttons: a label <span>, then an <svg class="icon">. An outlined
+   button is drawn with an inset shadow, not a border, so it is exactly the
+   size of a cut-out one at any pixel ratio (borders snap to whole device
+   pixels). */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  min-height: 2.75rem;
+  padding: 0.6em 1.4em;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: 600 clamp(1rem, 1.6vw, 1.25rem)/1.2 "Hanken Grotesk", system-ui, sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.btn .icon { flex: none; width: 1.1em; height: 1.1em; fill: currentColor; }
+.btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+
+.btn.outline { box-shadow: inset 0 0 0 var(--line) var(--ink); }
+.btn.outline:hover:not(:disabled) { background: color-mix(in oklab, var(--ink) 12%, transparent); }
+
+/* Cut-out buttons (cutout.js): the label and icon are masked out of an ink
+   pill, so the ground shows through them. The real label and icon stay in
+   place, invisible, to size the button; the SVG pill is drawn over them.
+   Hover darkens the pill. */
+.btn.cut-out { position: relative; overflow: hidden; color: transparent; }
+.btn.cut-out:hover:not(:disabled) { filter: brightness(0.7); }
+.btn.cut-out > .icon { visibility: hidden; }
+.btn.cut-out .cut {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.btn.cut-out .pill { fill: var(--ink); }
+.btn.cut-out mask text, .btn.cut-out mask path { fill: #000; }
+.btn.cut-out mask text { font: inherit; }

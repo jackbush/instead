@@ -4,7 +4,7 @@
 
 Fun, free and fulfilling activities to do instead of falling into a screen.
 
-Instead is a browser extension for Chrome and Firefox. Open a site on your list and you land on a page suggesting something better to do. The same page is also a website, served from this repo on GitHub Pages.
+Instead is a browser extension for Chrome and Firefox. Open a site on your list and you land on a page suggesting something better to do. Its website, with a live demo, is served from this repo on GitHub Pages.
 
 Instead has no server and collects nothing. Its settings live in your browser, which syncs them between your devices if you've turned on syncing. The [privacy page](https://jackbush.github.io/instead/privacy.html) (`privacy.html`) has the details.
 
@@ -57,9 +57,11 @@ Press `\` to show or hide the colour settings. The primary hue is random on each
 
 Where things live:
 
-- `index.html` and `app.js`: the page and its behaviour
+- `index.html`, `site.js` and `site/`: the marketing site and its screenshots
+- `demo.html` and `app.js`: the suggestion page, which the extension opens and the site shows as a live demo
 - `background.js` and `okhsl.js`: the gradient and colour maths
-- `cutout.js` and `cutout.css`: buttons whose label is cut out of the pill
+- `brand.css`: shared colour fallbacks, line weight, warning icon and pill buttons
+- `cutout.js`: buttons whose label is cut out of the pill
 - `extension/`: the manifest, redirect rules, in-page watcher and settings page
 - `fonts/` and `icons/`: bundled fonts and the hand icon
 
@@ -67,7 +69,7 @@ Changes to the page show on the website straight away. For the extension, rebuil
 
 ## Images
 
-The link-preview image (`og-image.jpg`), the cover (`.github/cover.jpg`) and the store images (`store/`: two screenshots and the Chrome Web Store's small and marquee promo tiles) are all rendered from the built extension in headless Chrome, with the same hue and gradient:
+All the images are rendered from the built extension in headless Chrome: the link-preview image (`og-image.jpg`), the cover (`.github/cover.jpg`), the store images (`store/`: two screenshots and the Chrome Web Store's small and marquee promo tiles, all in one colour) and the website's screenshots (`site/`, each in its own colour):
 
 ```bash
 node scripts/capture-images.mjs

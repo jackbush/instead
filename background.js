@@ -1,6 +1,6 @@
 // Background: a circular arc from a random height on the left edge to a random
-// height on the right edge guides a vertical gradient — lighter secondary above,
-// darker primary below. Colours are set in OKHSL from the params sidebar.
+// height on the right edge guides a vertical gradient — secondary above, primary
+// below. Colours are set in OKHSL from the params sidebar.
 
 const PARAMS = [
   { group: "All colours" },
@@ -156,9 +156,14 @@ function createBackground(canvas) {
   function draw() {
     const dpr = devicePixelRatio || 1;
     const w = innerWidth, h = innerHeight;
-    canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(h * dpr);
-    gl.viewport(0, 0, canvas.width, canvas.height);
+    // Resizing reallocates the canvas, so only do it when the size changed;
+    // the marketing page redraws on every scroll frame.
+    const cw = Math.round(w * dpr), ch = Math.round(h * dpr);
+    if (canvas.width !== cw || canvas.height !== ch) {
+      canvas.width = cw;
+      canvas.height = ch;
+      gl.viewport(0, 0, cw, ch);
+    }
 
     const g = arcGeometry(arc, w, h);
     const c = colours();
@@ -183,7 +188,8 @@ function createBackground(canvas) {
 
 // For pages that only show the background (settings, privacy): a random
 // primary hue from the hue slider's range (the first random number drawn),
-// the page colours from it, and the gradient, redrawn on resize.
+// the page colours from it, and the gradient, redrawn on resize. Returns the
+// background (null without WebGL).
 function paintBackground(canvas) {
   const { min, max } = PARAMS.find((p) => p.key === "h");
   params.h = min + Math.floor(Math.random() * (max - min + 1));
@@ -191,6 +197,7 @@ function paintBackground(canvas) {
   applyColours();
   background?.draw();
   addEventListener("resize", () => background?.draw());
+  return background;
 }
 
 function applyColours() {

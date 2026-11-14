@@ -2,7 +2,7 @@
 // page's background shows through them. The button keeps its real label
 // (a <span>) and icon (an <svg class="icon"> holding one <path>), which give
 // it its size and accessible name; cutOut() draws the pill over them and
-// keeps the cut-outs lined up with them. Styles are in cutout.css.
+// keeps the cut-outs lined up with them. Styles are in brand.css.
 
 let cutOuts = 0;
 
@@ -37,5 +37,8 @@ function cutOut(button) {
     );
   }
   new ResizeObserver(place).observe(button);
+  // A font arriving moves the label without resizing the button. fonts.ready
+  // alone can settle before loading starts (in an iframe, say).
   document.fonts.ready.then(place);
+  document.fonts.addEventListener("loadingdone", place);
 }

@@ -4,9 +4,11 @@
 //   store/main.png, settings.png store screenshots
 //   store/tile.png               Chrome Web Store small promo tile
 //   store/marquee-tile.png       Chrome Web Store marquee promo tile
-// Every image shows the same moment: hue 200 and one fixed gradient curve. Each is drawn at 3x and scaled down for crisp type. Chrome's
-// software rendering can differ by a shade between runs, so an image is only
-// replaced when the new one visibly differs from it.
+//   site/*.jpg                   website screenshots, each in its own colour
+// Each image fixes its suggestion, hue and gradient curve (hue 200 and one
+// curve unless it says otherwise). Each is drawn at 3x and scaled down for
+// crisp type. Chrome's software rendering can differ by a shade between runs,
+// so an image is only replaced when the new one visibly differs from it.
 //
 //   node scripts/capture-images.mjs
 //
@@ -25,29 +27,49 @@ const CHROME = process.env.CHROME ?? "/Applications/Google Chrome.app/Contents/M
 const SUGGESTION = "Draw something that makes you feel joy";
 const HUE = 200;
 const CURVE_SEED = 89;
+
+// The website's screenshots: the product in a different colour each time.
+const SITE_SHOTS = [
+  ["Find a leaf and draw it", 145, 7],
+  ["Go for a run", 25, 31],
+  ["Tell a friend why you love them", 300, 89],
+  ["Make and drink a cup of tea in silence", 70, 12],
+  ["Ride your bike", 235, 54],
+  ["Practice a loving kindness meditation", 340, 3],
+].map(([suggestion, hue, seed], i) => ({
+  out: `site/demo-${i + 1}.jpg`, page: "demo.html", width: 1280, height: 800, scale: 1, suggestion, hue, seed,
+}));
 const SUPERSAMPLE = 3;
 
 const IMAGES = [
-  { out: "og-image.jpg", page: "index.html", width: 1200, height: 630, scale: 2, hideLabel: true },
-  { out: ".github/cover.jpg", page: "index.html", width: 1200, height: 800, scale: 2 },
-  { out: "store/main.png", page: "index.html", width: 1280, height: 800, scale: 1 },
+  { out: "og-image.jpg", page: "demo.html", width: 1200, height: 630, scale: 2, hideLabel: true },
+  { out: ".github/cover.jpg", page: "demo.html", width: 1200, height: 800, scale: 2 },
+  { out: "store/main.png", page: "demo.html", width: 1280, height: 800, scale: 1 },
   { out: "store/settings.png", page: "options.html", width: 1280, height: 800, scale: 1 },
   {
-    out: "store/tile.png", page: "index.html", width: 440, height: 280, scale: 1,
+    out: "store/tile.png", page: "demo.html", width: 440, height: 280, scale: 1,
     tile: { text: "Find a leaf and draw it", textSize: 56, nameSize: 76, pad: 32, gap: 10 },
   },
   {
-    out: "store/marquee-tile.png", page: "index.html", width: 1400, height: 560, scale: 1,
+    out: "store/marquee-tile.png", page: "demo.html", width: 1400, height: 560, scale: 1,
     tile: { text: SUGGESTION, textSize: 112, nameSize: 44, pad: 80, gap: 20 },
+  },
+  ...SITE_SHOTS,
+  { out: "site/settings.jpg", page: "options.html", width: 1280, height: 800, scale: 1, hue: 95, seed: 21 },
+  // The page as the extension shows it after a redirect: "Take me to Reddit"
+  // fades in five seconds after load.
+  {
+    out: "site/take-me-to.jpg", page: "demo.html?from=https://www.reddit.com/", width: 1280, height: 800, scale: 1,
+    suggestion: "Look at a tree, from leaf to root", hue: 330, seed: 44, waitMs: 5800,
   },
 ];
 
 // Math.random as a fixed sequence: the hue first (settings picks it with the
 // first random number), then the gradient curve.
-const SEEDED_RANDOM = `(() => {
-  let s = ${CURVE_SEED}, first = true;
+const seededRandom = ({ hue = HUE, seed = CURVE_SEED }) => `(() => {
+  let s = ${seed}, first = true;
   Math.random = () => {
-    if (first) { first = false; return (${HUE} + 0.5) / 360; }
+    if (first) { first = false; return (${hue} + 0.5) / 360; }
     s = (s * 16807) % 2147483647;
     return s / 2147483647;
   };
@@ -79,7 +101,7 @@ const tileCss = ({ textSize, nameSize, pad, gap }) => `
 
 // The Instead page: the suggestion, the hue (through its slider, as a visitor
 // would set it) and the curve. A tile also gets the tile layout.
-const SET_UP_MAIN = ({ hideLabel, tile }) => `(async () => {
+const setUpMain = (image) => { const { hideLabel, tile, suggestion = SUGGESTION, hue = HUE } = image; return `(async () => {
   while (suggestions.length < 2) await new Promise((r) => setTimeout(r, 50));
   ${tile ? `
   document.head.append(Object.assign(document.createElement("style"), { textContent: ${JSON.stringify(tileCss(tile))} }));
@@ -87,17 +109,17 @@ const SET_UP_MAIN = ({ hideLabel, tile }) => `(async () => {
   name.append(Object.assign(document.createElement("img"), { src: "icons/favicon.svg", alt: "" }), "Instead");
   document.body.prepend(name);
   await name.querySelector("img").decode();` : ""}
-  suggestions.splice(0, suggestions.length, ${JSON.stringify(tile?.text ?? SUGGESTION)});
+  suggestions.splice(0, suggestions.length, ${JSON.stringify(tile?.text ?? suggestion)});
   current = -1;
   show();
   const hue = document.querySelector('#params [name="h"]');
-  hue.value = ${HUE};
+  hue.value = ${hue};
   hue.dispatchEvent(new Event("input"));
-  ${SEEDED_RANDOM}
+  ${seededRandom(image)}
   Math.random(); // the hue's turn; the page's hue comes from the slider
   background.newArc();
   ${hideLabel ? `document.querySelectorAll("#next mask text, #next mask path").forEach((e) => e.remove());` : ""}
-})()`;
+})()`; };
 
 const SET_UP_SETTINGS = `(async () => {
   while (document.getElementById("sites").disabled) await new Promise((r) => setTimeout(r, 50));
@@ -112,7 +134,7 @@ function serve() {
   const server = createServer((req, res) => {
     const path = normalize(decodeURIComponent(new URL(req.url, "http://x").pathname)).replace(/^\/+/, "");
     try {
-      const body = readFileSync(join(SITE, path || "index.html"));
+      const body = readFileSync(join(SITE, path || "demo.html"));
       res.writeHead(200, { "content-type": TYPES[extname(path)] ?? "application/octet-stream" });
       res.end(body);
     } catch {
@@ -168,7 +190,7 @@ async function capture({ send, next }, origin, image) {
   await send("Emulation.setDeviceMetricsOverride", {
     width, height, deviceScaleFactor: scale * SUPERSAMPLE, mobile: false,
   });
-  const scripts = page === "options.html" ? [FAKE_EXTENSION, SEEDED_RANDOM] : [];
+  const scripts = page === "options.html" ? [FAKE_EXTENSION, seededRandom(image)] : [];
   const added = [];
   for (const source of scripts) added.push((await send("Page.addScriptToEvaluateOnNewDocument", { source })).identifier);
   const loaded = next("Page.loadEventFired");
@@ -176,14 +198,14 @@ async function capture({ send, next }, origin, image) {
   await loaded;
   for (const identifier of added) await send("Page.removeScriptToEvaluateOnNewDocument", { identifier });
 
-  const setUp = page === "options.html" ? SET_UP_SETTINGS : SET_UP_MAIN(image);
+  const setUp = page === "options.html" ? SET_UP_SETTINGS : setUpMain(image);
   const result = await send("Runtime.evaluate", { expression: setUp, awaitPromise: true });
   if (result.exceptionDetails) throw new Error(`${image.out}: ${result.exceptionDetails.exception?.description}`);
   await send("Runtime.evaluate", {
     expression: "document.fonts.ready.then(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))",
     awaitPromise: true,
   });
-  await sleep(300); // the cut-out button places its label after layout settles
+  await sleep(image.waitMs ?? 300); // the cut-out button places its label after layout settles
 
   const { data } = await send("Page.captureScreenshot", { format: "png" });
   return Buffer.from(data, "base64");

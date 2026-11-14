@@ -8,7 +8,7 @@ import {
   originFor, siteFor, isException, exceptionFilter, sitesWithAccess,
 } from "./settings.js";
 
-const PAGE = ext.runtime.getURL("index.html");
+const PAGE = ext.runtime.getURL("demo.html");
 const BYPASS_MS = 15 * 60 * 1000;
 const WATCHER = "watch-url";
 

@@ -8,11 +8,11 @@ set -eu
 root=$(git rev-parse --show-toplevel)
 cd "$root"
 
-if git diff --cached --quiet -- index.html app.js background.js okhsl.js \
-    cutout.js cutout.css suggestions.txt fonts icons extension scripts; then
+if git diff --cached --quiet -- demo.html app.js background.js okhsl.js \
+    cutout.js brand.css suggestions.txt fonts icons extension scripts; then
   exit 0
 fi
 
 echo "Re-rendering images (scripts/capture-images.mjs)..."
 node scripts/capture-images.mjs
-git add og-image.jpg .github/cover.jpg store/*.png
+git add og-image.jpg .github/cover.jpg store/*.png site/*.jpg
