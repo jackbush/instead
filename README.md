@@ -6,7 +6,7 @@ Fun, free and fulfilling activities to do instead of falling into a screen.
 
 Instead is a browser extension for Chrome and Firefox. Open a site on your list and you land on a page suggesting something better to do. The same page is also a website, served from this repo on GitHub Pages.
 
-Instead has no server and collects nothing. Its settings live in your browser, which syncs them between your devices if you've turned on syncing.
+Instead has no server and collects nothing. Its settings live in your browser, which syncs them between your devices if you've turned on syncing. The [privacy page](https://jackbush.github.io/instead/privacy.html) (`privacy.html`) has the details.
 
 ## What the extension does
 
@@ -34,12 +34,12 @@ Build the extension from the repo root:
 sh scripts/build-extension.sh
 ```
 
-This makes `dist/extension/` and `dist/instead.zip` from the page files at the root and the files in `extension/`.
+This makes a build for each browser, `dist/chrome/` and `dist/firefox/`, from the page files at the root and the files in `extension/`, each with only its browser's manifest keys. Their zips, `dist/instead-chrome.zip` and `dist/instead-firefox.zip`, are what you upload to each store.
 
 To install it from the build:
 
-- **Chrome:** open `chrome://extensions`, turn on Developer mode, choose Load unpacked, and pick `dist/extension`.
-- **Firefox:** open `about:debugging#/runtime/this-firefox`, choose Load Temporary Add-on, and pick `dist/extension/manifest.json`. It's removed when Firefox restarts; to keep it, use Firefox Developer Edition: set `xpinstall.signatures.required` to false in `about:config`, then install `dist/instead.zip` from `about:addons` with Install Add-on From File. Or have Mozilla sign it for free as an unlisted add-on. If settings ask for permission under the sites, click Allow.
+- **Chrome:** open `chrome://extensions`, turn on Developer mode, choose Load unpacked, and pick `dist/chrome`.
+- **Firefox:** open `about:debugging#/runtime/this-firefox`, choose Load Temporary Add-on, and pick `dist/firefox/manifest.json`. It's removed when Firefox restarts; to keep it, use Firefox Developer Edition: set `xpinstall.signatures.required` to false in `about:config`, then install `dist/instead-firefox.zip` from `about:addons` with Install Add-on From File. Or have Mozilla sign it for free as an unlisted add-on. If settings ask for permission under the sites, click Allow.
 
 Listings on the Chrome Web Store and Firefox Add-ons are coming. To check or sign the Firefox build with Mozilla's `web-ext` tool, use Node 22; it crashes on Node 24.
 
@@ -64,3 +64,19 @@ Where things live:
 - `fonts/` and `icons/`: bundled fonts and the hand icon
 
 Changes to the page show on the website straight away. For the extension, rebuild, then reload it from `chrome://extensions` or `about:debugging`.
+
+## Images
+
+The link-preview image (`og-image.jpg`), the cover (`.github/cover.jpg`) and the store screenshots (`store/`) are all rendered from the built extension in headless Chrome, showing the same suggestion, hue and gradient:
+
+```bash
+node scripts/capture-images.mjs
+```
+
+It needs Node 22 or later, ffmpeg and Chrome. An image is only replaced when the new render looks different.
+
+A pre-commit hook in `.githooks/` runs it whenever a commit changes the page, settings or suggestions, and adds any images that changed. Turn it on once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```

@@ -181,6 +181,18 @@ function createBackground(canvas) {
   };
 }
 
+// For pages that only show the background (settings, privacy): a random
+// primary hue from the hue slider's range (the first random number drawn),
+// the page colours from it, and the gradient, redrawn on resize.
+function paintBackground(canvas) {
+  const { min, max } = PARAMS.find((p) => p.key === "h");
+  params.h = min + Math.floor(Math.random() * (max - min + 1));
+  const background = createBackground(canvas);
+  applyColours();
+  background?.draw();
+  addEventListener("resize", () => background?.draw());
+}
+
 function applyColours() {
   const c = colours();
   const root = document.documentElement.style;
@@ -200,15 +212,18 @@ function buildSidebar(panel, onChange) {
     const row = document.createElement("label");
     if (p.type === "checkbox") {
       row.className = "check";
-      row.innerHTML = `<input type="checkbox" name="${p.key}"> <span>${p.label}</span>`;
-      const input = row.querySelector("input");
-      input.checked = params[p.key];
+      const input = Object.assign(document.createElement("input"), {
+        type: "checkbox", name: p.key, checked: params[p.key],
+      });
+      row.append(input, " ", Object.assign(document.createElement("span"), { textContent: p.label }));
       input.addEventListener("input", () => { params[p.key] = input.checked; onChange(); });
     } else {
-      row.innerHTML = `<span>${p.label}</span><output></output>
-        <input type="range" name="${p.key}" min="${p.min}" max="${p.max}" step="${p.step ?? 1}" value="${params[p.key]}">`;
-      const input = row.querySelector("input"), out = row.querySelector("output");
-      out.textContent = params[p.key];
+      // min, max and step go before value, which they limit.
+      const input = Object.assign(document.createElement("input"), {
+        type: "range", name: p.key, min: p.min, max: p.max, step: p.step ?? 1, value: params[p.key],
+      });
+      const out = Object.assign(document.createElement("output"), { textContent: params[p.key] });
+      row.append(Object.assign(document.createElement("span"), { textContent: p.label }), out, input);
       input.addEventListener("input", () => {
         params[p.key] = Number(input.value);
         out.textContent = input.value;

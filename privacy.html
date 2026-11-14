@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy · Instead</title>
+  <meta name="description" content="Instead has no server and collects nothing.">
+  <link rel="icon" href="icons/icon-16.png" sizes="16x16">
+  <link rel="icon" href="icons/icon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <script src="okhsl.js"></script>
+  <script src="background.js"></script>
+  <style>
+    :root { --pad: clamp(1.5rem, 6vw, 6rem); }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      padding: var(--pad);
+      background: var(--primary);
+      color: var(--ink);
+      font: 500 1.125rem/1.6 "Hanken Grotesk", system-ui, sans-serif;
+    }
+
+    #bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; }
+
+    main { max-width: 38rem; }
+
+    h1, h2 {
+      margin: 0;
+      font-family: Gloock, Georgia, serif;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.04;
+      text-wrap: balance;
+    }
+    h1 { font-size: clamp(3.15rem, 9.9vw, 6.5rem); margin-bottom: 1rem; }
+    h2 { font-size: clamp(1.9rem, 4vw, 2.5rem); margin: clamp(2.25rem, 5vw, 3.25rem) 0 0.6rem; }
+
+    p, ul { margin: 0 0 1rem; text-wrap: pretty; }
+    ul { padding-left: 1.25rem; }
+    li + li { margin-top: 0.35rem; }
+    b { font-weight: 800; }
+    a { color: inherit; text-decoration-thickness: 0.08em; text-underline-offset: 0.2em; }
+    :focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+    .lede { font-size: 1.375rem; line-height: 1.45; }
+    .updated { margin-top: clamp(2.5rem, 6vw, 3.75rem); }
+  </style>
+</head>
+<body>
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <main>
+    <h1>Privacy</h1>
+    <p class="lede"><b>Instead</b> has no server. It collects no data, and sends nothing anywhere.</p>
+
+    <h2>What the extension keeps</h2>
+    <p>Your settings: the sites to redirect, the pages that are always allowed, whether direct messages are allowed, and your suggestions. They’re kept in your browser’s storage for extensions.</p>
+    <p>If you’ve turned on syncing in your browser, the browser copies them to your other devices through your Google or Mozilla account, as it does for other extensions, under that company’s privacy policy. Instead never sees that copy.</p>
+    <p>When you use “Take me to&nbsp;…”, the extension notes the tab, the site and when the 15&nbsp;minutes end, so it can let that tab through. The note is deleted when the time runs out, when the tab closes, or when the browser quits.</p>
+
+    <h2>What the extension sees</h2>
+    <ul>
+      <li>It acts only on the sites on your list. When you open one, the browser sends you to Instead’s page with the address you were going to, so “Take me to&nbsp;…” can take you there. That address stays in the tab and in your browser’s history, like any page you visit.</li>
+      <li>On those sites, a small script watches for the page changing its address without reloading, and asks the extension whether the new address should be redirected. It reads nothing else on the page.</li>
+      <li>To act on a site you add, it asks your browser for permission to that site, and only that site.</li>
+    </ul>
+
+    <h2>The website</h2>
+    <p>The Instead website has no cookies, no analytics and no third-party code; its fonts and scripts are served with the page. It’s hosted by GitHub Pages, which may keep server logs under <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub’s privacy statement</a>.</p>
+
+    <h2>Questions</h2>
+    <p>Open an issue on <a href="https://github.com/jackbush/instead/issues">GitHub</a>. The code is all there to read.</p>
+
+    <p class="updated">Updated 14 November 2026. <a href="./">Back to Instead</a></p>
+  </main>
+  <script>paintBackground(document.getElementById("bg"));</script>
+</body>
+</html>

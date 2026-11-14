@@ -6,20 +6,23 @@
 
 let cutOuts = 0;
 
+function svgElement(name, attributes) {
+  const element = document.createElementNS("http://www.w3.org/2000/svg", name);
+  for (const [key, value] of Object.entries(attributes)) element.setAttribute(key, value);
+  return element;
+}
+
 function cutOut(button) {
   const label = button.querySelector("span");
   const icon = button.querySelector(".icon");
   const id = `cut-out-${++cutOuts}`;
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.classList.add("cut");
-  svg.setAttribute("aria-hidden", "true");
-  svg.innerHTML = `<mask id="${id}"><rect width="100%" height="100%" fill="#fff"/>`
-    + `<text dominant-baseline="central"></text><path/></mask>`
-    + `<rect class="pill" width="100%" height="100%" mask="url(#${id})"/>`;
-  const text = svg.querySelector("text");
-  const path = svg.querySelector("mask path");
+  const svg = svgElement("svg", { class: "cut", "aria-hidden": "true" });
+  const mask = svgElement("mask", { id });
+  const text = svgElement("text", { "dominant-baseline": "central" });
+  const path = svgElement("path", { d: icon.querySelector("path").getAttribute("d") });
   text.textContent = label.textContent;
-  path.setAttribute("d", icon.querySelector("path").getAttribute("d"));
+  mask.append(svgElement("rect", { width: "100%", height: "100%", fill: "#fff" }), text, path);
+  svg.append(mask, svgElement("rect", { class: "pill", width: "100%", height: "100%", mask: `url(#${id})` }));
   button.append(svg);
 
   function place() {

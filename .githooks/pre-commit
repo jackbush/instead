@@ -1,0 +1,18 @@
+#!/bin/sh
+# When a commit changes anything the images show, re-render them
+# (scripts/capture-images.mjs) and add the ones that changed to the commit.
+# The images are drawn from the working tree, so stage everything you want
+# them to show. Skip with `git commit --no-verify`.
+set -eu
+
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+
+if git diff --cached --quiet -- index.html app.js background.js okhsl.js \
+    cutout.js cutout.css suggestions.txt fonts icons extension scripts; then
+  exit 0
+fi
+
+echo "Re-rendering images (scripts/capture-images.mjs)..."
+node scripts/capture-images.mjs
+git add og-image.jpg .github/cover.jpg store

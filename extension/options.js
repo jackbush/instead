@@ -26,14 +26,8 @@ let saveTimer = 0;         // set while typing hasn't been saved yet
 let failure = "";         // why the last save didn't go through, if it didn't
 let clearStatus = 0;
 
-// Background and colours, as on the Instead page (background.js). The hue is
-// the first random number drawn.
-const { min: HUE_MIN, max: HUE_MAX } = PARAMS.find((p) => p.key === "h");
-params.h = HUE_MIN + Math.floor(Math.random() * (HUE_MAX - HUE_MIN + 1));
-const background = createBackground($("bg"));
-applyColours();
-background?.draw();
-addEventListener("resize", () => { background?.draw(); fitAll(); });
+paintBackground($("bg"));
+addEventListener("resize", () => fitAll());
 cutOut($("preview"));
 
 // Size a textarea to its text; the suggestions get one extra line.

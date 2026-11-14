@@ -15,16 +15,23 @@ async function loadSuggestions() {
   return text.split("\n").map((l) => l.trim()).filter(Boolean);
 }
 
-// Glue the last two words so a wrap never leaves one word alone on the
-// bottom line, escape the line, then turn [text](url) into a link.
+// The line as text and links: [text](url) becomes a link when the url is
+// http or https, and stays as plain text otherwise. As in Markdown, the url
+// may hold balanced parentheses, like Wikipedia's. The last two words are
+// glued so a wrap never leaves one word alone on the bottom line.
 function render(line) {
-  const escaped = line
-    .replace(/ +(\S+)$/, "\u00a0$1")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-  return escaped.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
+  const glued = line.replace(/ +(\S+)$/, "\u00a0$1");
+  const nodes = [];
+  let from = 0;
+  for (const m of glued.matchAll(/\[([^\]]+)\]\(((?:[^()\s]|\([^()\s]*\))+)\)/g)) {
+    nodes.push(glued.slice(from, m.index));
+    nodes.push(/^https?:\/\//i.test(m[2])
+      ? Object.assign(document.createElement("a"), { href: m[2], textContent: m[1] })
+      : m[1]);
+    from = m.index + m[0].length;
+  }
+  nodes.push(glued.slice(from));
+  return nodes;
 }
 
 function show() {
@@ -32,7 +39,7 @@ function show() {
   do i = Math.floor(Math.random() * suggestions.length);
   while (suggestions.length > 1 && i === current);
   current = i;
-  suggestion.innerHTML = render(suggestions[i]);
+  suggestion.replaceChildren(...render(suggestions[i]));
 }
 
 cutOut(next);
