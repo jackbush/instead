@@ -18,71 +18,110 @@ for (const group of document.querySelectorAll("[data-install]")) {
   cutOut(first);
 }
 
-// Fisher–Yates, in place.
-function shuffle(list) {
-  for (let i = list.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [list[i], list[j]] = [list[j], list[i]];
-  }
-  return list;
-}
+const shared = import("./extension/shared.js"); // shuffle, parseLines, plainText
 
-// "Instead, find a leaf and draw it." from a line of suggestions.txt: links
-// become their text, and the first letter drops to lower case.
+// "Instead, find a leaf and draw it." from a line of suggestions.txt with its
+// links as plain text: the first letter drops to lower case.
 function sentence(line) {
-  const text = line.replace(/\[([^\]]+)\]\([^)]*(?:\([^)]*\)[^)]*)*\)/g, "$1").replace(/[.!]$/, "");
+  const text = line.replace(/[.!]$/, "");
   return `Instead, ${text[0].toLowerCase()}${text.slice(1)}.`;
 }
 
 const hero = document.getElementById("hero-title");
 const was = document.getElementById("was");
 
+const pause = document.querySelector(".pause");
+const fading = new Set(); // swaps between fading out and back in
+
 // Swaps an element's text with a short blur and fade.
 function swap(element, update) {
   if (reducedMotion) return update();
   element.classList.add("out");
-  setTimeout(() => { update(); element.classList.remove("out"); }, 280);
+  const timer = setTimeout(() => { fading.delete(timer); update(); element.classList.remove("out"); }, 280);
+  fading.add(timer);
+}
+
+// Cancels a swap that is mid-fade; the old text comes back at full strength.
+function settle() {
+  for (const timer of fading) clearTimeout(timer);
+  fading.clear();
+  hero.classList.remove("out");
+  was.classList.remove("out");
 }
 
 function showSite(i) {
   swap(was, () => { was.querySelector("b").textContent = SITES[i % SITES.length]; });
 }
 
-fetch("suggestions.txt").then((r) => r.text()).then((text) => {
-  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+Promise.all([shared, fetch("suggestions.txt").then((r) => r.text())]).then(([{ parseLines, plainText }, text]) => {
+  const lines = parseLines(text).map(plainText);
   let i = Math.floor(Math.random() * lines.length);
   hero.textContent = sentence(lines[i]);
-  if (reducedMotion) return;
+  if (reducedMotion) return; // one sentence, nothing to pause
   let site = 0;
-  setInterval(() => {
+  let timer = 0;
+  const advance = () => {
     if (document.hidden) return;
     i = (i + 1) % lines.length;
     swap(hero, () => { hero.textContent = sentence(lines[i]); });
     showSite(++site);
-  }, CYCLE_MS);
+  };
+  const run = () => { timer = setInterval(advance, CYCLE_MS); };
+  run();
+  pause.hidden = false;
+  pause.addEventListener("click", () => {
+    const resuming = !timer;
+    if (resuming) run();
+    else { clearInterval(timer); timer = 0; settle(); }
+    // The label carries the state, so there is no aria-pressed to contradict it.
+    pause.querySelector("span").textContent = resuming ? "Pause suggestions" : "Play suggestions";
+    // SVG elements have no `hidden` property, only the attribute.
+    pause.querySelector('[data-icon="pause"]').toggleAttribute("hidden", !resuming);
+    pause.querySelector('[data-icon="play"]').toggleAttribute("hidden", resuming);
+  });
 });
 
 // Screenshots in a different order each visit.
-for (const list of document.querySelectorAll("[data-shuffle]")) list.append(...shuffle([...list.children]));
+shared.then(({ shuffle }) => {
+  for (const list of document.querySelectorAll("[data-shuffle]")) list.append(...shuffle([...list.children]));
+});
+
+// "#rrggbb" a fraction t of the way from a to b, mixed in sRGB as the
+// browser composites the paper's fade over the canvas.
+function mixHex(a, b, t) {
+  const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  const [x, y] = [rgb(a), rgb(b)];
+  return "#" + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, "0")).join("");
+}
 
 // The hue starts somewhere random and turns a full circle between the top of
-// the page and the start of the paper. The browser's bars (theme-color, and
-// the root background Safari samples) take the hue while the gradient is on
-// screen, then the paper.
+// the page and the start of the paper. The browser's bars follow whatever is
+// on screen at each edge: the gradient there, with as much of the paper's
+// fade as covers it. Safari tints its bars from the fixed blocks behind the
+// canvas and its overscroll from the root background; other browsers read
+// theme-color.
 const background = paintBackground(document.getElementById("bg"));
 const ground = document.getElementById("ground");
 const themeColor = document.querySelector('meta[name="theme-color"]');
+const [topEdge, bottomEdge] = ["top", "bottom"].map((e) => document.querySelector(`[data-edge="${e}"]`));
 const startHue = params.h;
 let frame = 0;
 function turn() {
   frame = 0;
-  const top = ground.offsetTop;
-  params.h = Math.round(startHue + Math.min(1, scrollY / top) * 360) % 360;
+  params.h = Math.round(startHue + Math.min(1, scrollY / ground.offsetTop) * 360) % 360;
   applyColours();
   background?.draw();
-  const bar = scrollY < top ? oklabHex(colours().primary) : PAPER;
-  document.documentElement.style.backgroundColor = bar;
-  themeColor.content = bar;
+  // Without WebGL the page is flat primary.
+  const { primary } = colours();
+  const edges = background?.edges() ?? { top: primary, bottom: primary };
+  const fade = parseFloat(getComputedStyle(ground).getPropertyValue("--fade"));
+  const groundTop = ground.getBoundingClientRect().top;
+  const at = (lab, y) => mixHex(oklabHex(lab), PAPER, Math.min(1, Math.max(0, (y - groundTop) / fade)));
+  const top = at(edges.top, 0);
+  topEdge.style.backgroundColor = top;
+  bottomEdge.style.backgroundColor = at(edges.bottom, innerHeight);
+  document.documentElement.style.backgroundColor = top;
+  themeColor.content = top;
 }
 turn();
 addEventListener("scroll", () => { frame ||= requestAnimationFrame(turn); }, { passive: true });

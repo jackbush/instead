@@ -13,6 +13,11 @@ if git diff --cached --quiet -- demo.html app.js background.js okhsl.js \
   exit 0
 fi
 
+# The script checks a few images first and keeps the rest if those are
+# unchanged; when the script itself changes, render every image.
+all=
+git diff --cached --quiet -- scripts/capture-images.mjs || all=--all
+
 echo "Re-rendering images (scripts/capture-images.mjs)..."
-node scripts/capture-images.mjs
+node scripts/capture-images.mjs $all
 git add og-image.jpg .github/cover.jpg store/*.png site/*.jpg

@@ -6,6 +6,8 @@
 //   allowMessages  whether MESSAGE_PAGES are allowed too
 //   suggestions    one suggestion per line, Markdown links allowed
 
+import { parseLines } from "./shared.js";
+
 export const ext = globalThis.browser ?? globalThis.chrome;
 
 // One-click groups of sites for the settings page. The default ones are on
@@ -31,7 +33,8 @@ export const PRESETS = [
 export const DEFAULT_SITES = PRESETS.filter((p) => p.default).flatMap((p) => p.sites);
 
 // Direct-message pages on sites people commonly redirect, in the same form as
-// exceptions. They only matter for sites on the list.
+// exceptions. They only matter for sites on the list. X's encrypted Chat lives
+// under /i/chat; its address on the web is only documented for group invite links.
 const MESSAGE_PAGES = [
   "facebook.com/messages",
   "instagram.com/direct",
@@ -39,6 +42,10 @@ const MESSAGE_PAGES = [
   "reddit.com/chat",
   "tiktok.com/messages",
   "x.com/messages",
+  "x.com/i/chat",
+  "twitter.com/messages",
+  "twitter.com/i/chat",
+  "reddit.com/message",
   "linkedin.com/messaging",
   "bsky.app/messages",
 ];
@@ -52,8 +59,6 @@ export async function defaultSuggestions() {
   const text = await (await fetch(ext.runtime.getURL("suggestions.txt"))).text();
   return parseLines(text);
 }
-
-export const parseLines = (text) => text.split("\n").map((l) => l.trim()).filter(Boolean);
 
 // The saved settings, with the defaults for any that were never saved.
 export async function getLists() {
@@ -83,15 +88,19 @@ const unique = (list) => [...new Set(list.filter(Boolean))];
 
 // Splits "https://www.Reddit.com/r/Name/?x#y" into the parts a browser would
 // send: lower-case punycode host without "www.", and the encoded path + query.
-// Null if it isn't a host name.
+// Null unless the host has a dot and isn't a number: "123" and "0x7f.1" are
+// IP addresses to a browser, so only a dotted quad typed in full is accepted.
 function parse(input) {
   const text = input.trim().replace(/^[a-z][a-z0-9+.-]*:\/\//i, "").replace(/^\*\./, "");
   if (!text || /^[/?#]/.test(text)) return null;
   let url;
   try { url = new URL(`https://${text}`); } catch { return null; }
   if (url.username || url.password || !/^[a-z0-9.-]+$/.test(url.hostname)) return null;
-  const host = url.hostname.replace(/\.$/, "").replace(/^www\./, "");
-  if (!host || host.startsWith(".") || host.includes("..")) return null;
+  // One trailing dot goes; "www." goes repeatedly while a dot remains, so "www.com" stays.
+  const host = url.hostname.replace(/\.$/, "").replace(/^(?:www\.)+(?=[^.]+\.)/, "");
+  const labels = host.split(".");
+  const quad = /^\d+\.\d+\.\d+\.\d+$/.test(host) && text.toLowerCase().startsWith(host);
+  if (labels.length < 2 || labels.includes("") || (/^\d+$/.test(labels.at(-1)) && !quad)) return null;
   // Trailing slashes go, so "reddit.com/r/x/" also allows "reddit.com/r/x".
   const rest = url.search ? url.pathname + url.search : url.pathname.replace(/\/+$/, "");
   return { host, rest };
@@ -104,6 +113,8 @@ export function normaliseSite(input) {
 
 // "https://www.reddit.com/r/Name/" -> "reddit.com/r/Name". Null if invalid.
 // The characters * ^ | mean something in a DNR urlFilter, so they aren't allowed.
+// (Some URL parsers percent-encode ^ and | in a path and some don't, so either
+// way none reaches the filter raw.)
 export function normaliseException(input) {
   const parts = parse(input);
   if (!parts || /[*^|]/.test(parts.rest)) return null;
@@ -119,10 +130,12 @@ export function siteFor(url, sites) {
   return host === null ? null : sites.find((s) => host === s || host.endsWith(`.${s}`)) ?? null;
 }
 
+// The host of a web URL. A trailing dot is kept: "reddit.com." is not
+// "reddit.com" to a DNR filter ("." isn't a separator), so it matches nothing.
 function hostOf(url) {
   try {
     const u = new URL(url);
-    return /^https?:$/.test(u.protocol) ? u.hostname.replace(/\.$/, "") : null;
+    return /^https?:$/.test(u.protocol) ? u.hostname : null;
   } catch {
     return null;
   }
@@ -131,7 +144,8 @@ function hostOf(url) {
 // Whether a URL starts with one of the exceptions. A prefix ends at a URL
 // separator, so "reddit.com/r/name" allows /r/name and /r/name/comments but
 // not /r/names. This is what the DNR filter `||<exception>^` matches, and
-// exceptionFilter() builds exactly that.
+// exceptionFilter() builds exactly that: a path follows the host directly, so
+// a URL with an explicit port never matches a path exception.
 export function isException(url, exceptions) {
   let u;
   try { u = new URL(url); } catch { return false; }
@@ -144,7 +158,7 @@ export function isException(url, exceptions) {
     const eRest = slash < 0 ? "" : e.slice(slash).toLowerCase();
     if (host !== eHost && !host.endsWith(`.${eHost}`)) return false;
     if (!eRest) return true;
-    return rest.startsWith(eRest) && !/[\w.%-]/.test(rest[eRest.length] ?? "/");
+    return !u.port && rest.startsWith(eRest) && !/[\w.%-]/.test(rest[eRest.length] ?? "/");
   });
 }
 

@@ -127,7 +127,17 @@ void main() {
   gl_FragColor = vec4(rgb, 1.0);
 }`;
 
+// Null without WebGL or when a shader fails, and the page keeps its flat --primary.
 function createBackground(canvas) {
+  try {
+    return buildBackground(canvas);
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+function buildBackground(canvas) {
   const gl = canvas.getContext("webgl");
   if (!gl) return null;
 
@@ -182,8 +192,30 @@ function createBackground(canvas) {
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
 
+  // The shader's colour along the window's top and bottom edges, each averaged
+  // across the width (the mix is linear, so averaging t averages the colour).
+  function edges() {
+    const w = innerWidth, h = innerHeight;
+    const g = arcGeometry(arc, w, h);
+    const width = (params.width / 100) * h;
+    const { primary, secondary } = colours();
+    const SAMPLES = 32;
+    const along = (y) => {
+      let t = 0;
+      for (let i = 0; i <= SAMPLES; i++) {
+        const dx = (w * i) / SAMPLES - g.cx;
+        const arcY = g.cy + g.branch * Math.sqrt(Math.max(g.r * g.r - dx * dx, 0));
+        t += clamp01(0.5 + (y - arcY) / width);
+      }
+      t /= SAMPLES + 1;
+      return secondary.map((s, i) => s + (primary[i] - s) * t);
+    };
+    return { top: along(0), bottom: along(h) };
+  }
+
   return {
     draw,
+    edges,
     newArc() { arc = randomArc(); draw(); },
   };
 }

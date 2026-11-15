@@ -1,7 +1,8 @@
 import {
   ext, PRESETS, DEFAULT_SITES, defaultSuggestions, getLists, saveLists,
-  normaliseSite, normaliseException, parseLines, sitesWithAccess, requestAccess,
+  normaliseSite, normaliseException, sitesWithAccess, requestAccess,
 } from "./settings.js";
+import { parseLines } from "./shared.js";
 
 // storage.sync allows about 8 KB per item: the key plus its JSON.
 const QUOTA_BYTES_PER_ITEM = 8192;
@@ -75,16 +76,29 @@ function tidy(key, text) {
   return { text: out.join("\n"), valid: [...seen], invalid };
 }
 
-function setNotes(key, messages) {
-  const { el, note } = fields[key];
-  note.replaceChildren(...messages.map((m) => {
+// Fills a note list. The lists are live regions, so a change is announced
+// without moving focus; one that says the same thing as before is left alone
+// rather than read out again. `problems` marks the field invalid; the notice
+// that an empty list means the defaults is not a problem.
+function fillNote(note, messages) {
+  const items = messages.map((m) => {
     const li = document.createElement("li");
     li.append(...m);
     return li;
-  }));
-  note.hidden = !messages.length;
-  el.setAttribute("aria-invalid", messages.length ? "true" : "false");
+  });
+  const same = items.length === note.children.length && items.every((li, i) => li.isEqualNode(note.children[i]));
+  if (!same) note.replaceChildren(...items);
 }
+
+function setNotes(key, messages, { problems = true } = {}) {
+  const { el, note } = fields[key];
+  fillNote(note, messages);
+  el.setAttribute("aria-invalid", problems && messages.length ? "true" : "false");
+}
+
+// An empty suggestions list isn't saved as "no suggestions": the page falls
+// back to the bundled ones, so say so.
+const emptySuggestions = (list) => list.length ? [] : [["The built-in suggestions are used while this list is empty."]];
 
 const code = (text) => Object.assign(document.createElement("code"), { textContent: text });
 
@@ -111,7 +125,7 @@ function render(lists) {
   const covered = tickPresets(lists.sites);
   for (const [key, field] of Object.entries(fields)) {
     field.el.value = lists[key].filter((line) => key !== "sites" || !covered.has(line)).join("\n");
-    setNotes(key, []);
+    setNotes(key, key === "suggestions" ? emptySuggestions(lists[key]) : []);
   }
   allowMessages.checked = lists.allowMessages;
   fitAll();
@@ -122,8 +136,8 @@ function render(lists) {
 async function refreshAccess() {
   granted = new Set(await sitesWithAccess(saved.sites));
   const missing = saved.sites.filter((s) => !granted.has(s));
-  access.hidden = !missing.length;
   if (!missing.length) return access.replaceChildren();
+  if (access.children.length) return;
   const button = document.createElement("button");
   button.type = "button";
   button.className = "btn outline";
@@ -186,7 +200,8 @@ async function settle(key) {
     const covered = key === "sites" ? tickPresets(saved.sites) : new Set();
     const text = result[key].text.split("\n").filter((line) => !covered.has(line)).join("\n");
     if (el.value !== text) { el.value = text; fit(fields[key]); }
-    setNotes(key, result[key].invalid.map((line) => [code(line), ` isn’t ${fields[key].what}, so it’s left out.`]));
+    if (key === "suggestions") setNotes(key, emptySuggestions(result[key].valid), { problems: false });
+    else setNotes(key, result[key].invalid.map((line) => [code(line), ` isn’t ${fields[key].what}, so it’s left out.`]));
   }
   await refreshAccess();
 }

@@ -127,6 +127,8 @@ b, .note code { font-weight: 800; }
   display: grid;
   gap: 0.35rem;
 }
+/* The notes are live regions, so they stay in the page when empty. */
+.note:empty { margin: 0; }
 .note li { text-wrap: pretty; }
 .note li::before {
   content: "";

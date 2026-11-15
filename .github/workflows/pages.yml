@@ -1,0 +1,73 @@
+# Publishes only the website files to GitHub Pages, not the whole repository.
+# Repo setting: Settings > Pages > Build and deployment > Source = "GitHub Actions".
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      # Everything the pages load, one path per line. A file missing here is a
+      # 404 on the live site, so add a line when a page starts using a new file;
+      # a path that does not exist fails the build.
+      - name: Assemble the site
+        run: |
+          while read -r f; do
+            mkdir -p "_site/$(dirname "$f")"
+            cp "$f" "_site/$f"
+          done <<'FILES'
+          index.html
+          demo.html
+          privacy.html
+          privacy.js
+          site.js
+          app.js
+          brand.css
+          okhsl.js
+          background.js
+          cutout.js
+          extension/settings.js
+          extension/shared.js
+          suggestions.txt
+          og-image.jpg
+          fonts/fonts.css
+          fonts/gloock-latin.woff2
+          fonts/hanken-grotesk-latin.woff2
+          icons/favicon.svg
+          icons/icon-16.png
+          icons/icon-32.png
+          icons/apple-touch-icon.png
+          site/demo-1.jpg
+          site/demo-2.jpg
+          site/demo-3.jpg
+          site/demo-4.jpg
+          site/demo-5.jpg
+          site/demo-6.jpg
+          site/settings.jpg
+          site/take-me-to.jpg
+          FILES
+
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

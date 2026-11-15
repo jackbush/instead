@@ -1,0 +1,1 @@
+paintBackground(document.getElementById("bg"));

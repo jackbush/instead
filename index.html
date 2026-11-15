@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f1f2f3">
   <title>Instead: something better than the feed</title>
@@ -23,6 +24,9 @@
   <script src="background.js"></script>
   <script src="cutout.js"></script>
   <style>
+    /* Registered so site.js reads --fade in pixels. */
+    @property --fade { syntax: "<length>"; inherits: true; initial-value: 0px; }
+
     :root {
       /* --primary and --ink are set from the hue by applyColours(); below the
          opening the page fades to --paper so the product's colours pop. */
@@ -34,9 +38,8 @@
 
     * { box-sizing: border-box; }
 
-    /* site.js sets the root background (and theme-color) to the opening's
-       hue while it is on screen and to --paper after, so Safari's bars and
-       overscroll follow the page. */
+    /* site.js sets the root background (and theme-color) to the colour at
+       the top of the window, so overscroll follows the page. */
     html { background: var(--paper); scroll-behavior: smooth; }
     @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
@@ -46,8 +49,15 @@
       font: 500 1.125rem/1.6 "Hanken Grotesk", system-ui, sans-serif;
     }
 
-    /* The canvas falls back to the primary if WebGL is unavailable. */
-    #bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; background: var(--primary); }
+    /* No background of its own: without WebGL the root background, set to the
+       primary, shows through. */
+    #bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; }
+
+    /* Hidden behind the canvas, these carry the colour at each edge of the
+       window (set by site.js) for Safari to tint its bars from. */
+    .edge { position: fixed; inset-inline: 0; height: 3rem; z-index: -2; pointer-events: none; }
+    .edge[data-edge="top"] { top: 0; }
+    .edge[data-edge="bottom"] { bottom: 0; }
 
     ::selection { background: var(--ink); color: var(--paper); }
 
@@ -91,6 +101,8 @@
     /* A word wider than a phone screen breaks rather than scrolling the page sideways. */
     .hero h1 { font-size: clamp(3rem, 8.4vw, 8.5rem); max-width: 15ch; overflow-wrap: anywhere; }
     .what { margin: 0; max-width: 34rem; font-size: clamp(1.125rem, 1.8vw, 1.375rem); text-wrap: pretty; }
+    .pause { margin-top: 1.5rem; }
+    .pause[hidden], .pause .icon[hidden] { display: none; }
     .swap { transition: opacity 280ms ease-out, filter 280ms ease-out; }
     .swap.out { opacity: 0; filter: blur(6px); }
 
@@ -139,7 +151,7 @@
       height: auto;
       aspect-ratio: 16 / 10;
       border-radius: clamp(10px, 1.2vw, 16px);
-      box-shadow: 0 1.5rem 3rem -1.5rem rgb(17 18 20 / 0.4);
+      box-shadow: 0 1.5rem 3rem -1.5rem color-mix(in oklab, var(--ink) 40%, transparent);
     }
 
     /* A new sky: the strip of screenshots. */
@@ -225,6 +237,8 @@
   </style>
 </head>
 <body>
+  <div class="edge" data-edge="top"></div>
+  <div class="edge" data-edge="bottom"></div>
   <canvas id="bg" aria-hidden="true"></canvas>
 
   <header class="top">
@@ -237,10 +251,15 @@
   </header>
 
   <main id="top">
-    <section class="hero" aria-labelledby="hero-title">
+    <section class="hero" aria-label="Instead, a free browser extension">
       <div>
         <p class="was swap" id="was">You were about to open <b>reddit.com</b>.</p>
         <h1 class="display swap" id="hero-title">Instead, find a leaf and draw&nbsp;it.</h1>
+        <button class="btn link pause" type="button" hidden>
+          <span>Pause suggestions</span>
+          <svg class="icon" data-icon="pause" aria-hidden="true" viewBox="0 0 256 256"><path d="M200,28H160a20,20,0,0,0-20,20V208a20,20,0,0,0,20,20h40a20,20,0,0,0,20-20V48A20,20,0,0,0,200,28Zm-4,176H164V52h32ZM96,28H56A20,20,0,0,0,36,48V208a20,20,0,0,0,20,20H96a20,20,0,0,0,20-20V48A20,20,0,0,0,96,28ZM92,204H60V52H92Z"/></svg>
+          <svg class="icon" data-icon="play" aria-hidden="true" viewBox="0 0 256 256" hidden><path d="M234.49,111.07,90.41,22.94A20,20,0,0,0,60,39.87V216.13A20,20,0,0,0,90.41,233.06l144.08-88.13a23.69,23.69,0,0,0,0-33.86ZM84,208.85V47.15L216.16,128Z"/></svg>
+        </button>
       </div>
       <p class="what">A free browser extension that swaps the feed for one good idea, and leaves the choice with you.</p>
       <div class="install" data-install>

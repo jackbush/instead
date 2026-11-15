@@ -9,31 +9,38 @@ let current = -1;  // index of the one showing
 // In the browser extension, `ext` is its API object; on the website it is undefined.
 const ext = [globalThis.browser, globalThis.chrome].find((api) => api?.runtime?.id);
 
-// The extension's saved list if it has one, otherwise the bundled file.
+// Any website can put this page in an iframe (the extension must let sites
+// load it for the redirect), so a framed copy offers nothing that acts on the
+// tab. Comparing the two windows is allowed across origins.
+const framed = top !== self;
+
+// The shared helpers (extension/shared.js). The extension flattens extension/
+// into the page's own folder.
+let shuffle, parseLines, parseLinks;
+const shared = import(ext ? "./shared.js" : "./extension/shared.js")
+  .then((m) => ({ shuffle, parseLines, parseLinks } = m));
+
+// The extension's saved list if it has one, otherwise the bundled file, and
+// one line of its own if that fails too: the page always has a suggestion.
 async function loadSuggestions() {
-  const saved = (await ext?.storage.sync.get("suggestions"))?.suggestions;
-  if (saved?.length) return saved;
-  const text = await (await fetch("suggestions.txt")).text();
-  return text.split("\n").map((l) => l.trim()).filter(Boolean);
+  try {
+    const saved = (await ext?.storage.sync.get("suggestions"))?.suggestions;
+    if (saved?.length) return saved;
+  } catch {}
+  try {
+    const response = await fetch("suggestions.txt");
+    const lines = parseLines(await response.text());
+    if (response.ok && lines.length) return lines;
+  } catch {}
+  return ["Go for a run"];
 }
 
-// The line as text and links: [text](url) becomes a link when the url is
-// http or https, and stays as plain text otherwise. As in Markdown, the url
-// may hold balanced parentheses, like Wikipedia's. With `glue`, the last two
-// words are joined so a wrap never leaves one word alone on the bottom line.
+// The line as text and links (see parseLinks). With `glue`, the last two words
+// are joined so a wrap never leaves one word alone on the bottom line.
 function render(line, glue) {
   const glued = glue ? line.replace(/ +(\S+)$/, "\u00a0$1") : line;
-  const nodes = [];
-  let from = 0;
-  for (const m of glued.matchAll(/\[([^\]]+)\]\(((?:[^()\s]|\([^()\s]*\))+)\)/g)) {
-    nodes.push(glued.slice(from, m.index));
-    nodes.push(/^https?:\/\//i.test(m[2])
-      ? Object.assign(document.createElement("a"), { href: m[2], textContent: m[1] })
-      : m[1]);
-    from = m.index + m[0].length;
-  }
-  nodes.push(glued.slice(from));
-  return nodes;
+  return parseLinks(glued).map((s) => typeof s === "string" ? s
+    : Object.assign(document.createElement("a"), { href: s.href, textContent: s.text }));
 }
 
 // Deals the suggestions in a shuffled order, so each one shows before any
@@ -45,15 +52,6 @@ function show() {
   }
   current = deck.shift();
   paint();
-}
-
-// Fisher–Yates, in place.
-function shuffle(list) {
-  for (let i = list.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [list[i], list[j]] = [list[j], list[i]];
-  }
-  return list;
 }
 
 // Phones turn the glue off (demo.html sets --glue to 0): two long words
@@ -69,10 +67,11 @@ addEventListener("resize", () => { if (current >= 0 && glues() !== glued) paint(
 cutOut(done);
 
 // "I'm on it" closes the tab. Pages can only close tabs a script opened, so the
-// extension closes it through its API; the website goes to its home page.
+// extension closes it through its API (but not from a frame, where that tab is
+// the embedding site's); the website goes to its home page.
 done.addEventListener("click", async () => {
-  if (ext) ext.tabs.remove((await ext.tabs.getCurrent()).id);
-  else location.href = "./";
+  if (!ext) location.href = "./";
+  else if (!framed) ext.tabs.remove((await ext.tabs.getCurrent()).id);
 });
 
 // Every suggestion (page load or button) gets a new primary hue from the
@@ -102,13 +101,19 @@ const BRAND_NAMES = {
   theguardian: "The Guardian", dailymail: "the Daily Mail", apnews: "AP News",
 };
 
+// Second-level labels under a country code, as in bbc.co.uk and news.com.au.
+const SECOND_LEVEL = new Set(["co", "com", "org", "net", "gov", "ac", "edu"]);
+
 // The extension adds ?from=<the page it redirected>. Five seconds later a
 // link offers to go there after all.
 function offerOriginal(from) {
-  const host = new URL(from).hostname.replace(/\.$/, "").split(".");
+  const hostname = new URL(from).hostname.replace(/\.$/, "");
+  const labels = hostname.split(".");
   // Registrable domain's first label: www.reddit.com -> reddit, news.bbc.co.uk -> bbc.
-  const second = host.length > 2 && host.at(-1).length === 2 && host.at(-2).length <= 3 ? 3 : 2;
-  const name = host.at(-second) ?? host[0];
+  // An address (1.2.3.4, [::1]) has none, so it is named whole.
+  const isAddress = hostname.includes(":") || /^\d+$/.test(labels.at(-1));
+  const second = labels.at(-1).length === 2 && SECOND_LEVEL.has(labels.at(-2)) ? 3 : 2;
+  const name = isAddress ? hostname : labels.at(-second) ?? labels[0];
   const button = document.createElement("button");
   button.id = "from";
   button.className = "btn link";
@@ -127,9 +132,14 @@ function offerOriginal(from) {
 // The original URL follows "?from=" unencoded (a redirect rule can't encode
 // it), so the rest of the query is taken as is. Its #fragment, if it had one,
 // is carried over onto this page's URL.
-const from = location.search.startsWith("?from=") && location.search.slice(6) + location.hash;
+// On the website only the extension's default sites are offered, so a link to
+// the demo can't send anyone elsewhere. A framed copy offers none.
+const from = !framed && location.search.startsWith("?from=") && location.search.slice(6) + location.hash;
 if (from && /^https?:\/\//i.test(from) && URL.canParse(from)) {
-  setTimeout(offerOriginal, 5000, from);
+  const allowed = ext || import("./extension/settings.js")
+    .then(({ DEFAULT_SITES, siteFor }) => siteFor(from, DEFAULT_SITES))
+    .catch(() => false);
+  Promise.resolve(allowed).then((ok) => { if (ok) setTimeout(offerOriginal, 5000, from); });
 }
 
 // Background and its params sidebar (background.js).
@@ -153,12 +163,15 @@ applyColours();
 redraw();
 addEventListener("resize", redraw);
 
-// \ shows and hides the settings.
-addEventListener("keydown", (e) => {
-  if (e.key === "\\" && !e.repeat) panel.hidden = !panel.hidden;
-});
+// On the website, \ shows and hides the settings. A bare key would be a
+// single-character shortcut that can't be turned off, so the extension has none.
+if (!ext) {
+  addEventListener("keydown", (e) => {
+    if (e.key === "\\" && !e.repeat) panel.hidden = !panel.hidden;
+  });
+}
 
-loadSuggestions().then((list) => {
+shared.then(loadSuggestions).then((list) => {
   suggestions = list;
   show();
 });

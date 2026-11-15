@@ -142,9 +142,9 @@ A soft, low-chroma two-stop gradient and a near-black ink, all spun from one hue
 ### Neutral
 - **Ink** (`ink`; hue h − 120°, saturation 100, lightness 5, capped): all text, link underlines, outlines, filled pills, focus rings, field borders. It is also the page's own background colour behind the canvas, and is written to `theme-color`, so browser bars match the text.
 - **Field White** (`field`): the fill of text fields and unchecked checkboxes on settings. Not derived from the hue, so editable areas read as paper on any ground.
-- **Paper** (`paper`): the marketing home page only. Below its opening the gradient fades to this cool off-white, so the screenshots and product colours above it stand out. Once the opening scrolls away, the root background and `theme-color` switch to it as well. It is not derived from the hue.
+- **Paper** (`paper`): the marketing home page only. Below its opening the gradient fades to this cool off-white, so the screenshots and product colours above it stand out. On the home page the browser's bars take the colour at each edge of the window instead (the gradient there, mixed with as much of the paper's fade as covers it), carried by fixed blocks behind the canvas, the root background and `theme-color`. It is not derived from the hue.
 
-Translucent ink tints (via `color-mix` in OKLab) do the remaining work: 10–12% for outline-button hover, 14% for the hairline outline on screenshots, 25% for the footer rule, 60% for placeholders, 55–60% for shadows.
+Translucent ink tints (via `color-mix` in OKLab) do the remaining work: 10–12% for outline-button hover, 25% for the footer rule, 60% for placeholders, 40% for screenshot shadows, 60% for the status shadow.
 
 ### Named Rules
 **The One Hue Rule.** Every colour except Field White and Paper is computed from the primary hue by fixed offsets (secondary +120°, ink −120° at lightness 5). Never hard-code a brand hex; a surface that wants colour reads `--primary` and `--ink`.
@@ -194,7 +194,7 @@ One column, left-aligned, held off the edges by a single fluid page padding (cla
 Flat. The only depth is the gradient itself; surfaces do not stack. Two places carry a soft shadow tinted from the ink, never grey or black.
 
 ### Shadow Vocabulary
-- **Screenshot lift** (`box-shadow: 0 1.5rem 3rem -1.5rem` ink at 55%, plus a 1px inset outline of ink at 14%): product screenshots on the marketing site, so a pale capture keeps its edge on a pale band.
+- **Screenshot lift** (`box-shadow: 0 1.5rem 3rem -1.5rem` ink at 40%): a single soft shadow with no outline, on product screenshots on the marketing site.
 - **Status lift** (`box-shadow: 0 6px 20px -8px` ink at 60%; 40% plus the 1.5px inset ring when saving): the fixed save status on settings.
 
 ### Named Rules
@@ -235,7 +235,7 @@ Marketing only: brand (hand mark plus "Instead" in Gloock 1.75rem) on the left, 
 A fixed ink pill in the bottom-right corner, ground-coloured 600 text, with Status lift. While saving it inverts to Field White with an ink ring.
 
 ### Cycling Text
-The marketing hero swaps its "You were about to open …" line and its suggestion every 4.2s with one transition: blur to 6px and fade out over 280ms ease-out, replace, then reverse. Under reduced motion the text never cycles and smooth scrolling is off.
+The marketing hero swaps its "You were about to open …" line and its suggestion every 4.2s with one transition: blur to 6px and fade out over 280ms ease-out, replace, then reverse. A "Pause suggestions" control sits under the sentence: a tertiary link button (underlined label, Phosphor bold pause icon) whose label and icon become "Play suggestions" and a play icon while paused, so the label alone carries the state. It stops both lines together; pausing mid-swap cancels the swap and leaves the old text fully visible. The hero section has a fixed accessible name, so the cycling text never renames it. Under reduced motion the hero shows one sentence that never cycles, the control is hidden (there is nothing to pause), and smooth scrolling is off.
 
 ## Do's and Don'ts
 
@@ -248,7 +248,7 @@ The marketing hero swaps its "You were about to open …" line and its suggestio
 - **Do** draw pill outlines as an inset box-shadow so outlined and cut-out pills match exactly.
 - **Do** use Phosphor bold icons, inlined as SVG, coloured with `currentColor`.
 - **Do** use pure white for editable fields.
-- **Do** limit motion to the 280ms blur-and-fade swap and the 400ms fade, and drop both under reduced motion.
+- **Do** limit motion to the 280ms blur-and-fade swap and the 400ms fade, drop both under reduced motion, and give any text that changes by itself a pause control.
 
 ### Don't:
 - **Don't** hard-code a hue, a brand hex or a grey for text or ground.

@@ -34,8 +34,8 @@
         <div id="presets" class="presets" role="group" aria-labelledby="sites-h"></div>
         <p id="sites-help" class="help">Other sites, one per line.</p>
         <textarea id="sites" name="sites" rows="1" placeholder="example.com" aria-labelledby="sites-help" aria-describedby="sites-note access" spellcheck="false" autocapitalize="off" autocomplete="off" disabled></textarea>
-        <ul id="sites-note" class="note" hidden></ul>
-        <ul id="access" class="note" hidden></ul>
+        <ul id="sites-note" class="note" aria-live="polite"></ul>
+        <ul id="access" class="note" aria-live="polite"></ul>
       </section>
 
       <section>
@@ -47,14 +47,14 @@
         </label>
         <p id="exceptions-help" class="help">Other pages that are never redirected, one per line.</p>
         <textarea id="exceptions" name="exceptions" rows="1" placeholder="reddit.com/r/name" aria-labelledby="exceptions-h" aria-describedby="exceptions-help exceptions-note" spellcheck="false" autocapitalize="off" autocomplete="off" disabled></textarea>
-        <ul id="exceptions-note" class="note" hidden></ul>
+        <ul id="exceptions-note" class="note" aria-live="polite"></ul>
       </section>
 
       <section>
         <h2 id="suggestions-h">Suggestions</h2>
         <p id="suggestions-help" class="help">One per line.</p>
         <textarea id="suggestions" name="suggestions" rows="1" aria-labelledby="suggestions-h" aria-describedby="suggestions-help suggestions-note" spellcheck="true" disabled></textarea>
-        <ul id="suggestions-note" class="note" hidden></ul>
+        <ul id="suggestions-note" class="note" aria-live="polite"></ul>
       </section>
 
     </div>

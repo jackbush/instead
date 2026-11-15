@@ -104,11 +104,13 @@ async function bypass(tabId, url) {
 // session rule that has no live let-through, then sets the alarm for the next.
 async function expire(closedTabId) {
   const bypasses = await getBypasses();
+  const rules = await ext.declarativeNetRequest.getSessionRules();
+  // Nothing to expire or clean up: most tab closes.
+  if (!Object.keys(bypasses).length && !rules.length) return;
   const now = Date.now();
   for (const [id, b] of Object.entries(bypasses)) {
     if (b.expires <= now || b.tabId === closedTabId) delete bypasses[id];
   }
-  const rules = await ext.declarativeNetRequest.getSessionRules();
   await ext.declarativeNetRequest.updateSessionRules({
     removeRuleIds: rules.map((r) => r.id).filter((id) => !(id in bypasses)),
   });
@@ -136,9 +138,13 @@ async function redirectFor(tabId, url) {
 
 const isHttp = (url) => typeof url === "string" && /^https?:\/\//i.test(url) && URL.canParse(url);
 
+// Messages come from the page and content.js in a tab's top frame only: any
+// website can put the page in an iframe, and a click there must not let a
+// tab through.
 ext.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const tabId = sender.tab?.id;
-  if (sender.id !== ext.runtime.id || tabId === undefined || !isHttp(message?.url)) return;
+  if (sender.id !== ext.runtime.id || tabId === undefined || sender.frameId !== 0
+    || !isHttp(message?.url)) return;
   if (message.type === "bypass" && sender.url?.startsWith(PAGE)) {
     serial(() => bypass(tabId, message.url));
   } else if (message.type === "check") {
@@ -148,13 +154,11 @@ ext.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 ext.runtime.onInstalled.addListener(() => serial(async () => {
-  const saved = await ext.storage.sync.get(["sites", "suggestions", "activities"]);
+  const saved = await ext.storage.sync.get(["sites", "suggestions"]);
   const missing = {};
   if (!saved.sites) missing.sites = DEFAULT_SITES;
-  // Older installs keep suggestions under "activities"; move them.
-  if (!saved.suggestions) missing.suggestions = saved.activities ?? await defaultSuggestions();
+  if (!saved.suggestions) missing.suggestions = await defaultSuggestions();
   await ext.storage.sync.set(missing);
-  if (saved.activities) await ext.storage.sync.remove("activities");
   await rebuild();
   await expire();
 }));

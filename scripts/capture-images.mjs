@@ -10,7 +10,13 @@
 // crisp type. Chrome's software rendering can differ by a shade between runs,
 // so an image is only replaced when the new one visibly differs from it.
 //
-//   node scripts/capture-images.mjs
+// Every image is the same two pages, so the images marked `probe` (between
+// them they show the page, its "Take me to" link and the settings page) are
+// rendered first. If they all look the same as before, so would the rest, and
+// the saved images are kept. Pass --all to render every image regardless, as
+// the pre-commit hook does when this script changes.
+//
+//   node scripts/capture-images.mjs [--all]
 //
 // Needs Node 22+, ffmpeg and Chrome (set CHROME to use another binary).
 
@@ -55,12 +61,12 @@ const IMAGES = [
     tile: { text: SUGGESTION, textSize: 112, nameSize: 44, pad: 80, gap: 20 },
   },
   ...SITE_SHOTS,
-  { out: "site/settings.jpg", page: "options.html", width: 1280, height: 1210, scale: 1, hue: 285, seed: 63 },
+  { out: "site/settings.jpg", page: "options.html", width: 1280, height: 1210, scale: 1, hue: 285, seed: 63, probe: true },
   // The page as the extension shows it after a redirect: "Take me to Reddit"
   // fades in five seconds after load.
   {
     out: "site/take-me-to.jpg", page: "demo.html?from=https://www.reddit.com/", width: 1280, height: 800, scale: 1,
-    suggestion: "Look at a tree, from leaf to root", hue: 330, seed: 44, waitMs: 5800,
+    suggestion: "Look at a tree, from leaf to root", hue: 330, seed: 44, waitMs: 5800, probe: true,
   },
 ];
 
@@ -90,6 +96,7 @@ const FAKE_EXTENSION = `globalThis.browser = {
 // suggestion, in place of the button. Sizes are in CSS pixels.
 const tileCss = ({ textSize, nameSize, pad, gap }) => `
   body { display: flex; flex-direction: column; justify-content: center; gap: ${gap}px; padding: 0 ${pad}px; }
+  main { display: contents; }
   #actions { display: none; }
   #suggestion { align-self: auto; max-width: none; font-size: ${textSize}px; }
   .tile-name {
@@ -133,7 +140,9 @@ const TYPES = {
 
 function serve() {
   const server = createServer((req, res) => {
-    const path = normalize(decodeURIComponent(new URL(req.url, "http://x").pathname)).replace(/^\/+/, "");
+    // The build flattens extension/ into the page folder; the website keeps it
+    // apart, and the pages here run as the website.
+    const path = normalize(decodeURIComponent(new URL(req.url, "http://x").pathname)).replace(/^\/+(extension\/)?/, "");
     try {
       const body = readFileSync(join(SITE, path || "demo.html"));
       res.writeHead(200, { "content-type": TYPES[extname(path)] ?? "application/octet-stream" });
@@ -248,9 +257,19 @@ const chrome = await openChrome();
 try {
   await chrome.send("Page.enable");
   await chrome.send("Runtime.enable");
-  for (const image of IMAGES) {
-    const png = await capture(chrome, origin, image);
-    console.log(`${save(png, image) ? "Updated" : "Unchanged"} ${image.out}`);
+  const render = async (image) => {
+    const changed = save(await capture(chrome, origin, image), image);
+    console.log(`${changed ? "Updated" : "Unchanged"} ${image.out}`);
+    return changed;
+  };
+  const probes = IMAGES.filter((image) => image.probe);
+  const rest = IMAGES.filter((image) => !image.probe);
+  let changed = false;
+  for (const image of probes) changed = (await render(image)) || changed;
+  if (changed || process.argv.includes("--all") || rest.some(({ out }) => !existsSync(join(ROOT, out)))) {
+    for (const image of rest) await render(image);
+  } else {
+    console.log(`Kept the other ${rest.length} images`);
   }
 } finally {
   await chrome.close();

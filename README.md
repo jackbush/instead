@@ -54,7 +54,7 @@ python3 -m http.server 8765
 
 Then [open localhost:8765](http://localhost:8765).
 
-Press `\` to show or hide the colour settings. The primary hue is random on each load and each new suggestion, and every other colour is derived from it. Defaults for the colours and the gradient are at the top of `background.js`.
+On the website, press `\` to show or hide the colour settings (the extension has no such key). The primary hue is random on each load and each new suggestion, and every other colour is derived from it. Defaults for the colours and the gradient are at the top of `background.js`.
 
 Where things live:
 
@@ -63,10 +63,19 @@ Where things live:
 - `background.js` and `okhsl.js`: the gradient and colour maths
 - `brand.css`: shared colour fallbacks, line weight, warning icon and pill buttons
 - `cutout.js`: buttons whose label is cut out of the pill
-- `extension/`: the manifest, redirect rules, in-page watcher and settings page
+- `extension/`: the manifest, redirect rules, in-page watcher and settings page, and `shared.js`, the shuffle, line splitting and Markdown-link parsing that the site, the suggestion page and the settings share
 - `fonts/` and `icons/`: bundled fonts and the hand icon
 
 Changes to the page show on the website straight away. For the extension, rebuild, then reload it from `chrome://extensions` or `about:debugging`.
+
+Run the unit tests with `node --test` (no dependencies).
+
+To check the extension end to end (the redirect, an always-allowed page, "Take me to …", and the in-page watcher), run it in [Chrome for Testing](https://developer.chrome.com/blog/chrome-for-testing/), which still loads unpacked extensions. The script builds into a temp dir and points the listed sites at a local server, so it leaves `dist/` alone and stays offline. It needs Node 22 or later and openssl:
+
+```bash
+npx @puppeteer/browsers install chrome@stable --path ~/.cache/chrome-for-testing
+CHROME_FOR_TESTING="<the path it prints>" node scripts/e2e-extension.mjs
+```
 
 ## Images
 
@@ -76,7 +85,7 @@ All the images are rendered from the built extension in headless Chrome: the lin
 node scripts/capture-images.mjs
 ```
 
-It needs Node 22 or later, ffmpeg and Chrome. An image is only replaced when the new render looks different.
+It needs Node 22 or later, ffmpeg and Chrome. An image is only replaced when the new render looks different. It renders two images first (a page with its "Take me to" link, and the settings page); if neither changed, it keeps the rest as they are. `--all` renders every image regardless.
 
 A pre-commit hook in `.githooks/` runs it whenever a commit changes the page, settings or suggestions, and adds any images that changed. Turn it on once per clone:
 
