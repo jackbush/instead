@@ -2,6 +2,7 @@
   /* --primary, --ink and --line are in brand.css. */
   --pad: clamp(1.5rem, 6vw, 6rem);
   --field: #fff;
+  --check-gap: 0.85rem; /* between checkboxes, in a grid or stacked */
   --font: "Hanken Grotesk", system-ui, sans-serif;
 }
 
@@ -87,12 +88,15 @@ section + section { margin-top: clamp(2.25rem, 5vw, 3.25rem); }
 .check input:checked + .box svg { visibility: visible; }
 .check input:focus-visible + .box { outline: 2px solid var(--ink); outline-offset: 3px; }
 .check input:disabled + .box { opacity: 0.6; }
+/* Stacked checkboxes sit as close as the rows of a grid. */
+.check:has(+ .check) { margin-bottom: var(--check-gap); }
+.check + .check { margin-top: var(--check-gap); }
 
 /* The preset sites, ticked to redirect them, and the suggestion packs. */
 .presets {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
-  gap: 0.85rem 1.5rem;
+  gap: var(--check-gap) 1.5rem;
   margin: 1rem 0 1.75rem;
 }
 .presets .check { margin: 0; }

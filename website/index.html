@@ -96,6 +96,7 @@
       align-content: end;
       gap: clamp(1.75rem, 4vw, 3rem);
       padding: 7rem var(--pad) 16svh;
+      margin-bottom: 0;
     }
     .was { margin: 0 0 1rem; font-size: clamp(1.125rem, 2vw, 1.5rem); }
     .was b { font-weight: 800; }
@@ -111,16 +112,18 @@
     .install { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
     .install .note { flex-basis: 100%; margin: 0.4rem 0 0; font-size: 0.95rem; }
 
-    /* The belief, still on the gradient. */
-    .belief { min-height: 70svh; display: grid; align-content: center; }
+    /* The belief, still on the gradient, starting just below the fold. */
+    .belief { padding-top: 2rem; margin-bottom: 0; }
     .belief h2.display { font-size: clamp(3rem, 8vw, 8rem); max-width: 12ch; margin-bottom: clamp(1.5rem, 3vw, 2.5rem); }
     .belief > p { margin: 0; max-width: 36rem; font-size: clamp(1.125rem, 1.8vw, 1.375rem); text-wrap: pretty; }
 
     /* Everything after the belief sits on paper; its top edge fades in over
-       the gradient. */
+       the gradient, starting behind the belief so the first section stands
+       half as far again from it as the sections stand from each other. */
     .ground {
       display: flow-root; /* keeps the last section's margin on paper */
-      padding-top: calc(var(--fade) + var(--gap) * 0.25);
+      margin-top: calc(var(--gap) * 1.5 - var(--fade));
+      padding-top: var(--fade);
       background: linear-gradient(to bottom, color-mix(in oklab, var(--paper) 0%, transparent), var(--paper) var(--fade));
     }
 
@@ -176,13 +179,7 @@
     .shots::-webkit-scrollbar { display: none; }
     .shots figure { margin: 0; scroll-snap-align: start; scroll-margin-left: var(--pad); }
 
-    /* The settings screenshot runs tall; what it shows sits beside it, with
-       the privacy promise under it. */
-    .yours { align-items: start; }
-    .yours .shot { aspect-ratio: auto; }
     .yours ul { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.5rem; }
-    .private { margin-top: clamp(3rem, 7vw, 6rem); }
-    .private p { margin: 0 0 1rem; max-width: 34rem; }
 
     /* Questions */
     .faq { max-width: 52rem; }
@@ -214,6 +211,10 @@
     .faq details p { margin: 0 0 1.25rem; max-width: 38rem; }
     @media (prefers-reduced-motion: reduce) { .faq summary::after { transition: none; } }
 
+    /* Questions and the install buttons sit side by side to close the page. */
+    .outro { padding: 0 var(--pad); margin-bottom: var(--gap); align-items: start; }
+    .outro > section { padding: 0; margin: 0; }
+
     .close { display: grid; gap: clamp(2rem, 4vw, 3rem); }
     .close h2.display { margin: 0; max-width: 18ch; }
 
@@ -223,11 +224,14 @@
       gap: 0.5rem 1.75rem;
       align-items: center;
       padding: 2rem var(--pad) 2.5rem;
-      border-top: var(--line) solid color-mix(in oklab, var(--ink) 25%, transparent);
-      background: var(--paper);
+      background: var(--ink);
+      color: var(--paper);
       font-size: 0.95rem;
     }
     footer .brand { font-size: 1.25rem; margin-right: auto; }
+    footer .brand img { filter: invert(1); }
+    footer :focus-visible { outline-color: var(--paper); }
+    footer ::selection { background: var(--paper); color: var(--ink); }
 
     @media (max-width: 720px) {
       .top nav { display: none; }
@@ -288,9 +292,22 @@
         <img class="shot" src="shots/take-me-to.jpg" width="1280" height="800" loading="lazy" alt="Instead after a redirect from Reddit, suggesting “Look at a tree, from leaf to root”, with “I’m on it” and “Suggest something else” buttons and a “Take me to Reddit” link.">
       </section>
 
+      <section class="split yours" aria-labelledby="yours-title">
+        <div>
+          <h2 class="display" id="yours-title">Make it work for&nbsp;you.</h2>
+          <ul>
+            <li>Choose the sites you want to use less.</li>
+            <li>Let direct messages through, without the noise.</li>
+            <li>Make exceptions, like a single subreddit or group.</li>
+            <li>Pick the kinds of suggestion you like, and add your own.</li>
+          </ul>
+        </div>
+        <img class="shot" src="shots/settings.jpg" width="1280" height="800" loading="lazy" alt="Instead's settings page: the sites to redirect and the pages always allowed.">
+      </section>
+
       <section aria-labelledby="sky-title">
         <h2 class="display" id="sky-title">A new sky every&nbsp;time.</h2>
-        <p class="lede">Feeds are built to be hard to leave. Instead is built to be nice to arrive at. Every visit, and every new suggestion, brings a colour you haven’t quite seen before.</p>
+        <p class="lede">Feeds are built to be hard to leave. Instead is built to be nice to arrive at. Every visit, and every new suggestion, looks different.</p>
         <div class="shots" data-shuffle tabindex="0" role="region" aria-label="Screenshots of Instead">
           <figure><img class="shot" src="shots/demo-1.jpg" width="1280" height="800" loading="lazy" alt="Instead suggesting “Find a leaf and draw it” on a green gradient."></figure>
           <figure><img class="shot" src="shots/demo-2.jpg" width="1280" height="800" loading="lazy" alt="Instead suggesting “Go for a run” on a peach gradient."></figure>
@@ -301,41 +318,26 @@
         </div>
       </section>
 
-      <section class="split yours" aria-labelledby="yours-title">
-        <img class="shot" src="shots/settings.jpg" width="1280" height="1210" loading="lazy" alt="Instead's settings page: the sites to redirect, the pages always allowed, and the start of the list of suggestions.">
-        <div>
-          <h2 class="display" id="yours-title">Make it work for&nbsp;you.</h2>
-          <ul>
-            <li>Choose the sites you want to use less.</li>
-            <li>Let direct messages through, without the noise.</li>
-            <li>Make exceptions, like a single subreddit or group.</li>
-            <li>Pick the kinds of suggestion you like, and add your own.</li>
-          </ul>
-          <div class="private">
-            <h2 class="display" id="private-title">No server, nothing collected.</h2>
-            <p>Instead runs entirely in your browser and only asks for access to the sites on your list. No account, no stats, no upgrade. The code is open and MIT licensed.</p>
-            <p><a href="privacy.html">Read the privacy policy</a></p>
+      <div class="split outro">
+        <section class="faq" id="questions" aria-labelledby="faq-title">
+          <h2 class="display" id="faq-title">Questions</h2>
+          <details><summary>Why not just block the sites?</summary><p>A block leaves you with nothing to do, so you find a way round it. Instead gives you somewhere to go.</p></details>
+          <details><summary>Can I get past it?</summary><p>Yes, on purpose. Five seconds, one click, 15 minutes.</p></details>
+          <details><summary>What can it see?</summary><p>Only that you opened a site on your list. Nothing is sent anywhere.</p></details>
+          <details><summary>Does it work on my phone?</summary><p>Chrome and Firefox on a computer for now.</p></details>
+          <details><summary>What about my data?</summary><p>Instead runs entirely in your browser and only asks for access to the sites on your list. No account, no stats, no upgrade. The code is open and MIT licensed. <a href="privacy.html">Read the privacy policy</a></p></details>
+          <details><summary>What does it cost?</summary><p>Nothing, and there is no paid version.</p></details>
+        </section>
+
+        <section class="close" id="install" aria-labelledby="install-title">
+          <h2 class="display" id="install-title">Next time you reach for the feed, try something&nbsp;else.</h2>
+          <div class="install" data-install>
+            <a class="btn" data-store="chrome" href="https://chromewebstore.google.com/detail/pjlabllieiaoigjcolbkjafijbgomeoh"><span>Add to Chrome</span><svg class="icon" aria-hidden="true" viewBox="0 0 256 256"><path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z"/></svg></a>
+            <a class="btn" data-store="firefox" href="https://addons.mozilla.org/firefox/addon/instead-do-this/"><span>Add to Firefox</span><svg class="icon" aria-hidden="true" viewBox="0 0 256 256"><path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z"/></svg></a>
+            <p class="note">The store listings are in review and go live soon.</p>
           </div>
-        </div>
-      </section>
-
-      <section class="faq" id="questions" aria-labelledby="faq-title">
-        <h2 class="display" id="faq-title">Questions</h2>
-        <details><summary>Why not just block the sites?</summary><p>A block leaves you with nothing to do, so you find a way round it. Instead gives you somewhere to go.</p></details>
-        <details><summary>Can I get past it?</summary><p>Yes, on purpose. Five seconds, one click, 15 minutes.</p></details>
-        <details><summary>What can it see?</summary><p>Only that you opened a site on your list. Nothing is sent anywhere.</p></details>
-        <details><summary>Does it work on my phone?</summary><p>Chrome and Firefox on a computer for now.</p></details>
-        <details><summary>What does it cost?</summary><p>Nothing, and there is no paid version.</p></details>
-      </section>
-
-      <section class="close" id="install" aria-labelledby="install-title">
-        <h2 class="display" id="install-title">Next time you reach for the feed, try something&nbsp;else.</h2>
-        <div class="install" data-install>
-          <a class="btn" data-store="chrome" href="https://chromewebstore.google.com/detail/pjlabllieiaoigjcolbkjafijbgomeoh"><span>Add to Chrome</span><svg class="icon" aria-hidden="true" viewBox="0 0 256 256"><path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z"/></svg></a>
-          <a class="btn" data-store="firefox" href="https://addons.mozilla.org/firefox/addon/instead-do-this/"><span>Add to Firefox</span><svg class="icon" aria-hidden="true" viewBox="0 0 256 256"><path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z"/></svg></a>
-          <p class="note">The store listings are in review and go live soon.</p>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   </main>
 

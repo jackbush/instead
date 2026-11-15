@@ -77,6 +77,7 @@ function mixHex(a, b, t) {
 // theme-color.
 const background = paintBackground(document.getElementById("bg"));
 const ground = document.getElementById("ground");
+const footer = document.querySelector("footer");
 const themeColor = document.querySelector('meta[name="theme-color"]');
 let [topEdge, bottomEdge] = ["top", "bottom"].map((e) => document.querySelector(`[data-edge="${e}"]`));
 const startHue = params.h;
@@ -99,14 +100,16 @@ function turn() {
   applyColours();
   background?.draw();
   // Without WebGL the page is flat primary.
-  const { primary } = colours();
+  const { primary, text } = colours();
   const edges = background?.edges() ?? { top: primary, bottom: primary };
   const fade = parseFloat(getComputedStyle(ground).getPropertyValue("--fade"));
   const groundTop = ground.getBoundingClientRect().top;
   const at = (lab, y) => mixHex(oklabHex(lab), PAPER, Math.min(1, Math.max(0, (y - groundTop) / fade)));
   const top = at(edges.top, 0);
   topEdge = tint(topEdge, top);
-  bottomEdge = tint(bottomEdge, at(edges.bottom, innerHeight));
+  // The footer is ink, so the bottom bar turns ink once the footer reaches it.
+  const footerOnEdge = footer.getBoundingClientRect().top < innerHeight;
+  bottomEdge = tint(bottomEdge, footerOnEdge ? oklabHex(text) : at(edges.bottom, innerHeight));
   document.documentElement.style.backgroundColor = top;
   themeColor.content = top;
 }
