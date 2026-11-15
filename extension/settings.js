@@ -158,11 +158,6 @@ export async function sitesWithAccess(sites) {
   return sites.filter((_, i) => granted[i]);
 }
 
-export async function sitesWithoutAccess(sites) {
-  const ok = new Set(await sitesWithAccess(sites));
-  return sites.filter((s) => !ok.has(s));
-}
-
 // Asks for host access to the given sites. Browsers only show the prompt
 // during a user gesture, and Firefox ends the gesture at the first await, so
 // call this synchronously at the top of a click handler, before awaiting

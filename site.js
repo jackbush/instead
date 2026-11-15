@@ -4,7 +4,7 @@
 
 const SITES = ["reddit.com", "instagram.com", "tiktok.com", "facebook.com"];
 const CYCLE_MS = 4200;
-const PAPER = "#f1f2f3";    // index.html's --paper
+const PAPER = getComputedStyle(document.documentElement).getPropertyValue("--paper").trim();
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // The visitor's browser goes first as the cut-out button; the other is outlined.

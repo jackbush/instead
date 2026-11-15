@@ -88,7 +88,8 @@
     }
     .was { margin: 0 0 1rem; font-size: clamp(1.125rem, 2vw, 1.5rem); }
     .was b { font-weight: 800; }
-    .hero h1 { font-size: clamp(3rem, 8.4vw, 8.5rem); max-width: 15ch; }
+    /* A word wider than a phone screen breaks rather than scrolling the page sideways. */
+    .hero h1 { font-size: clamp(3rem, 8.4vw, 8.5rem); max-width: 15ch; overflow-wrap: anywhere; }
     .what { margin: 0; max-width: 34rem; font-size: clamp(1.125rem, 1.8vw, 1.375rem); text-wrap: pretty; }
     .swap { transition: opacity 280ms ease-out, filter 280ms ease-out; }
     .swap.out { opacity: 0; filter: blur(6px); }
@@ -271,7 +272,7 @@
       <section aria-labelledby="sky-title">
         <h2 class="display" id="sky-title">A new sky every&nbsp;time.</h2>
         <p class="lede">Feeds are built to be hard to leave. Instead is built to be nice to arrive at. Every visit, and every new suggestion, brings a colour you haven’t quite seen before.</p>
-        <div class="shots" data-shuffle tabindex="0" aria-label="Screenshots of Instead">
+        <div class="shots" data-shuffle tabindex="0" role="region" aria-label="Screenshots of Instead">
           <figure><img class="shot" src="site/demo-1.jpg" width="1280" height="800" loading="lazy" alt="Instead suggesting “Find a leaf and draw it” on a green gradient."></figure>
           <figure><img class="shot" src="site/demo-2.jpg" width="1280" height="800" loading="lazy" alt="Instead suggesting “Go for a run” on a peach gradient."></figure>
           <figure><img class="shot" src="site/demo-3.jpg" width="1280" height="800" loading="lazy" alt="Instead suggesting “Tell a friend why you love them” on a pink gradient."></figure>

@@ -144,7 +144,7 @@ A soft, low-chroma two-stop gradient and a near-black ink, all spun from one hue
 - **Field White** (`field`): the fill of text fields and unchecked checkboxes on settings. Not derived from the hue, so editable areas read as paper on any ground.
 - **Paper** (`paper`): the marketing home page only. Below its opening the gradient fades to this cool off-white, so the screenshots and product colours above it stand out. Once the opening scrolls away, the root background and `theme-color` switch to it as well. It is not derived from the hue.
 
-Translucent ink tints (via `color-mix` in OKLab) do the remaining work: 10–12% for outline-button hover, 14% for the hairline outline on screenshots, 25% for the footer rule, 45% for placeholders, 55–60% for shadows.
+Translucent ink tints (via `color-mix` in OKLab) do the remaining work: 10–12% for outline-button hover, 14% for the hairline outline on screenshots, 25% for the footer rule, 60% for placeholders, 55–60% for shadows.
 
 ### Named Rules
 **The One Hue Rule.** Every colour except Field White and Paper is computed from the primary hue by fixed offsets (secondary +120°, ink −120° at lightness 5). Never hard-code a brand hex; a surface that wants colour reads `--primary` and `--ink`.
@@ -221,7 +221,7 @@ Two pills of the same size, one cut out and one drawn, and a link. All are defin
 
 ### Inputs / Fields
 - **Style:** Field White fill, 1.5px solid ink border, 1.1rem radius, 0.85rem × 1.1rem padding, body type at 1.6 leading, auto-growing with no resize handle.
-- **Placeholder:** ink at 45%.
+- **Placeholder:** ink at 60%, the lightest that keeps 4.5:1 on Field White at every hue.
 - **Focus:** 2px ink outline, 4px offset.
 - **Error / Disabled:** dashed border when invalid, with a note list beneath, each note led by a Phosphor warning-circle (fill) icon in ink; 60% opacity when disabled.
 

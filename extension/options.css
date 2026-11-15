@@ -111,7 +111,7 @@ textarea {
 }
 #suggestions { max-height: 70dvh; overflow-y: auto; }
 textarea:disabled { opacity: 0.6; }
-textarea::placeholder { color: color-mix(in oklab, var(--ink) 45%, transparent); opacity: 1; }
+textarea::placeholder { color: color-mix(in oklab, var(--ink) 60%, transparent); opacity: 1; }
 textarea[aria-invalid="true"] { border-style: dashed; }
 
 /* All bold text, in body copy and notes, uses one weight. */

@@ -156,6 +156,8 @@ function createBackground(canvas) {
   function draw() {
     const dpr = devicePixelRatio || 1;
     const w = innerWidth, h = innerHeight;
+    // A window with no area has nothing to draw, and no arc spans a zero width.
+    if (!w || !h) return;
     // Resizing reallocates the canvas, so only do it when the size changed;
     // the marketing page redraws on every scroll frame.
     const cw = Math.round(w * dpr), ch = Math.round(h * dpr);
@@ -186,7 +188,7 @@ function createBackground(canvas) {
   };
 }
 
-// For pages that only show the background (settings, privacy): a random
+// For pages that only show the background (home, settings, privacy): a random
 // primary hue from the hue slider's range (the first random number drawn),
 // the page colours from it, and the gradient, redrawn on resize. Returns the
 // background (null without WebGL).
