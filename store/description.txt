@@ -7,7 +7,7 @@ Blockers say no. Instead says what else you could do, and leaves the choice with
 Make it yours
 • Choose which sites to redirect: social media is on from the start, news sites are one click away, or add your own.
 • Keep the useful parts: let direct messages through, or allow particular pages.
-• Write your own suggestions, one per line.
+• Pick the kinds of suggestion you like (mindfulness, crafting, exercise, social, learning) and add your own.
 • Open settings from the toolbar button.
 
 Private by design

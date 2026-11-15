@@ -39,9 +39,9 @@ const SITE_SHOTS = [
   ["Find a leaf and draw it", 145, 7],
   ["Go for a run", 25, 31],
   ["Tell a friend why you love them", 300, 89],
-  ["Make and drink a cup of tea in silence", 70, 12],
+  ["Drink a cup of tea in silence", 70, 12],
   ["Ride your bike", 235, 54],
-  ["Practice a loving kindness meditation", 340, 3],
+  ["Practise a loving kindness meditation", 340, 3],
 ].map(([suggestion, hue, seed], i) => ({
   out: `website/shots/demo-${i + 1}.jpg`, page: "demo.html", width: 1280, height: 800, scale: 1, suggestion, hue, seed,
 }));
@@ -81,16 +81,9 @@ const seededRandom = ({ hue = HUE, seed = CURVE_SEED }) => `(() => {
   };
 })();`;
 
-// The settings page outside the extension: an API that hands back the
-// defaults and grants every permission.
-const FAKE_EXTENSION = `globalThis.browser = {
-  runtime: { id: "capture", getURL: (path) => "/" + path },
-  storage: { sync: { get: async () => ({}), set: async () => {}, remove: async () => {} } },
-  permissions: {
-    contains: async () => true, request: async () => true,
-    onAdded: { addListener() {} }, onRemoved: { addListener() {} },
-  },
-};`;
+// The settings page outside the extension. The capture's profile is new
+// each run, so the stand-in's storage starts empty: the defaults.
+const FAKE_EXTENSION = readFileSync(join(ROOT, "scripts/fake-extension.js"), "utf8");
 
 // The promo tiles: the Instead page with the hand and name above a
 // suggestion, in place of the button. Sizes are in CSS pixels.

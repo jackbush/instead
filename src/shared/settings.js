@@ -1,12 +1,19 @@
 // Lists, defaults and host access, shared by the worker and the options page.
 //
 // storage.sync holds:
-//   sites          redirected domains, subdomains included ("reddit.com")
+//   sites          domains to redirect, subdomains included ("reddit.com")
+//   otherSitesOn   whether sites outside the presets are redirected
 //   exceptions     always-allowed URL prefixes without the scheme ("reddit.com/r/name")
-//   allowMessages  whether MESSAGE_PAGES are allowed too
-//   suggestions    one suggestion per line, Markdown links allowed
+//   exceptionsOn   whether the exceptions are allowed
+//   allowMessages  whether MESSAGE_PAGES are allowed
+//   packsOff       names of the suggestion packs turned off
+//   customOn       whether the user's own suggestions are shown
+//   custom         the user's own suggestions, Markdown links allowed
+//
+// Turning a list off keeps its lines. A switch that was never saved is on
+// when its list has lines in it.
 
-import { parseLines } from "./shared.js";
+import { parsePacks } from "./shared.js";
 
 export const ext = globalThis.browser ?? globalThis.chrome;
 
@@ -50,36 +57,50 @@ const MESSAGE_PAGES = [
   "bsky.app/messages",
 ];
 
-// The URL prefixes that are never redirected.
-export const allowedPages = ({ exceptions, allowMessages }) =>
-  allowMessages ? [...new Set([...exceptions, ...MESSAGE_PAGES])] : exceptions;
+// The sites covered by presets whose sites are all on the list.
+export const presetSites = (sites) =>
+  PRESETS.filter((p) => p.sites.every((s) => sites.includes(s))).flatMap((p) => p.sites);
 
-// The bundled suggestions.txt is the only copy of the default suggestions.
-export async function defaultSuggestions() {
+// The sites that are redirected.
+export const redirectedSites = ({ sites, otherSitesOn }) => otherSitesOn ? sites : presetSites(sites);
+
+// The URL prefixes that are never redirected.
+export const allowedPages = ({ exceptions, exceptionsOn, allowMessages }) =>
+  [...new Set([...(exceptionsOn ? exceptions : []), ...(allowMessages ? MESSAGE_PAGES : [])])];
+
+// The bundled suggestions.txt is the only copy of the suggestion packs.
+export async function loadPacks() {
   const text = await (await fetch(ext.runtime.getURL("suggestions.txt"))).text();
-  return parseLines(text);
+  return parsePacks(text);
 }
+
+export const DEFAULT_LISTS = {
+  sites: DEFAULT_SITES, otherSitesOn: false, exceptions: [], exceptionsOn: false, allowMessages: false,
+  packsOff: [], customOn: false, custom: [],
+};
 
 // The saved settings, with the defaults for any that were never saved.
 export async function getLists() {
-  const saved = await ext.storage.sync.get(["sites", "exceptions", "allowMessages", "suggestions"]);
-  return {
-    sites: saved.sites ?? DEFAULT_SITES,
-    exceptions: saved.exceptions ?? [],
-    allowMessages: saved.allowMessages ?? false,
-    suggestions: saved.suggestions ?? await defaultSuggestions(),
-  };
+  const saved = await ext.storage.sync.get(Object.keys(DEFAULT_LISTS));
+  const lists = { ...DEFAULT_LISTS, ...saved };
+  const covered = presetSites(lists.sites);
+  lists.otherSitesOn = saved.otherSitesOn ?? lists.sites.some((s) => !covered.includes(s));
+  lists.exceptionsOn = saved.exceptionsOn ?? lists.exceptions.length > 0;
+  lists.customOn = saved.customOn ?? lists.custom.length > 0;
+  return lists;
 }
 
-// Saves whichever of { sites, exceptions, allowMessages, suggestions } are
-// given. List entries are normalised; invalid ones and duplicates are dropped.
-// Resolves to what was saved.
+// Saves whichever of DEFAULT_LISTS's keys are given. List entries are
+// normalised; invalid ones and duplicates are dropped. Resolves to what was saved.
 export async function saveLists(lists) {
   const clean = {};
   if (lists.sites) clean.sites = unique(lists.sites.map(normaliseSite));
   if (lists.exceptions) clean.exceptions = unique(lists.exceptions.map(normaliseException));
-  if ("allowMessages" in lists) clean.allowMessages = Boolean(lists.allowMessages);
-  if (lists.suggestions) clean.suggestions = unique(lists.suggestions.map((a) => a.trim()));
+  for (const key of ["otherSitesOn", "exceptionsOn", "allowMessages", "customOn"]) {
+    if (key in lists) clean[key] = Boolean(lists[key]);
+  }
+  if (lists.packsOff) clean.packsOff = unique(lists.packsOff);
+  if (lists.custom) clean.custom = unique(lists.custom.map((a) => a.trim()));
   await ext.storage.sync.set(clean);
   return clean;
 }

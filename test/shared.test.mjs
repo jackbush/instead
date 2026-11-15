@@ -1,7 +1,8 @@
 // Tests for src/shared/shared.js. Run with `node --test`.
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { shuffle, parseLines, parseLinks, plainText } from "../src/shared/shared.js";
+import { readFileSync } from "node:fs";
+import { shuffle, parseLines, parsePacks, suggestionsFor, parseLinks, plainText } from "../src/shared/shared.js";
 
 describe("shuffle", () => {
   test("returns the same array, a permutation of it", () => {
@@ -27,6 +28,47 @@ describe("parseLines", () => {
   test("only whitespace", () => assert.deepEqual(parseLines(" \n\t\n"), []));
   test("CRLF", () => assert.deepEqual(parseLines("a\r\nb\r\n"), ["a", "b"]));
   test("no trailing newline", () => assert.deepEqual(parseLines("a\nb"), ["a", "b"]));
+});
+
+describe("parsePacks", () => {
+  test("groups lines under their headings", () => assert.deepEqual(
+    parsePacks("# One\na\n\n b \n#  Two words\nc\n# Empty\n"),
+    [{ name: "One", items: ["a", "b"] }, { name: "Two words", items: ["c"] }, { name: "Empty", items: [] }],
+  ));
+  test("drops lines before the first heading", () => assert.deepEqual(parsePacks("a\n# One\nb"), [{ name: "One", items: ["b"] }]));
+  test("a # without a space is a suggestion", () => assert.deepEqual(parsePacks("# One\n#1 fan"), [{ name: "One", items: ["#1 fan"] }]));
+  test("the bundled file has packs, each with suggestions and no repeats", () => {
+    const packs = parsePacks(readFileSync(new URL("../src/shared/suggestions.txt", import.meta.url), "utf8"));
+    assert.ok(packs.length > 1);
+    for (const { name, items } of packs) assert.ok(items.length, name);
+    const all = packs.flatMap((p) => p.items);
+    assert.equal(new Set(all).size, all.length);
+    assert.equal(new Set(packs.map((p) => p.name)).size, packs.length);
+  });
+  // The mechanical rules in SUGGESTIONS.md.
+  test("the bundled suggestions are short, sentence case and unpunctuated", () => {
+    const packs = parsePacks(readFileSync(new URL("../src/shared/suggestions.txt", import.meta.url), "utf8"));
+    for (const line of packs.flatMap((p) => p.items).map(plainText)) {
+      assert.ok(line.split(/\s+/).length <= 8, `more than eight words: ${line}`);
+      assert.ok(line.length <= 40, `more than 40 characters: ${line}`);
+      assert.match(line, /^[A-Z]/, `not capitalised: ${line}`);
+      assert.doesNotMatch(line, /[.!]$/, `ends in a full stop: ${line}`);
+    }
+  });
+});
+
+describe("suggestionsFor", () => {
+  const packs = [{ name: "A", items: ["a1", "a2"] }, { name: "B", items: ["b1"] }];
+  test("every pack by default", () => assert.deepEqual(suggestionsFor(packs), ["a1", "a2", "b1"]));
+  test("leaves out packs turned off, adds the user's own", () =>
+    assert.deepEqual(suggestionsFor(packs, { packsOff: ["A"], customOn: true, custom: ["mine"] }), ["b1", "mine"]));
+  test("leaves out the user's own while they're off", () =>
+    assert.deepEqual(suggestionsFor(packs, { packsOff: ["A"], custom: ["mine"] }), ["b1"]));
+  test("only the user's own", () =>
+    assert.deepEqual(suggestionsFor(packs, { packsOff: ["A", "B"], customOn: true, custom: ["mine"] }), ["mine"]));
+  test("every pack off and the user's own off means every pack", () =>
+    assert.deepEqual(suggestionsFor(packs, { packsOff: ["A", "B"], custom: ["mine"] }), ["a1", "a2", "b1"]));
+  test("nothing left means every pack", () => assert.deepEqual(suggestionsFor(packs, { packsOff: ["A", "B"] }), ["a1", "a2", "b1"]));
 });
 
 describe("parseLinks", () => {

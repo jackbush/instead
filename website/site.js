@@ -18,9 +18,9 @@ for (const group of document.querySelectorAll("[data-install]")) {
   cutOut(first);
 }
 
-const shared = import("./shared.js"); // shuffle, parseLines, plainText
+const shared = import("./shared.js"); // shuffle, parsePacks, plainText
 
-// "Instead, find a leaf and draw it." from a line of suggestions.txt with its
+// "Instead, find a leaf and draw it." from a suggestion in suggestions.txt with its
 // links as plain text: the first letter drops to lower case.
 function sentence(line) {
   const text = line.replace(/[.!]$/, "");
@@ -41,9 +41,10 @@ function showSite(i) {
   swap(was, () => { was.querySelector("b").textContent = SITES[i % SITES.length]; });
 }
 
-Promise.all([shared, fetch("suggestions.txt").then((r) => r.text())]).then(([{ parseLines, plainText }, text]) => {
-  const lines = parseLines(text).map(plainText);
-  let i = Math.floor(Math.random() * lines.length);
+Promise.all([shared, fetch("suggestions.txt").then((r) => r.text())]).then(([{ parsePacks, shuffle, plainText }, text]) => {
+  const lines = shuffle(parsePacks(text).flatMap((p) => p.items.map(plainText)));
+  // Shuffled, so the sentences don't run through one pack at a time.
+  let i = 0;
   hero.textContent = sentence(lines[i]);
   if (reducedMotion) return; // one sentence that stays
   let site = 0;

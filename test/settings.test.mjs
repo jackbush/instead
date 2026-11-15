@@ -4,7 +4,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import {
-  PRESETS, DEFAULT_SITES, allowedPages, normaliseSite, normaliseException,
+  PRESETS, DEFAULT_SITES, presetSites, redirectedSites, allowedPages, normaliseSite, normaliseException,
   originFor, siteFor, isException, exceptionFilter,
 } from "../src/shared/settings.js";
 
@@ -325,16 +325,30 @@ describe("presets and message pages", () => {
     assert.ok(!DEFAULT_SITES.includes("bbc.com"));
   });
   test("allowedPages without messages is the exceptions", () => {
-    const ex = ["a.com/x"];
-    assert.equal(allowedPages({ exceptions: ex, allowMessages: false }), ex);
+    assert.deepEqual(allowedPages({ exceptions: ["a.com/x"], exceptionsOn: true, allowMessages: false }), ["a.com/x"]);
+  });
+  test("allowedPages leaves out the exceptions while they're off", () => {
+    assert.deepEqual(allowedPages({ exceptions: ["a.com/x"], exceptionsOn: false, allowMessages: false }), []);
+    const pages = allowedPages({ exceptions: ["a.com/x"], exceptionsOn: false, allowMessages: true });
+    assert.ok(!pages.includes("a.com/x"));
+    assert.ok(pages.includes("facebook.com/messages"));
   });
   test("allowedPages with messages adds normalised pages, without duplicates", () => {
-    const pages = allowedPages({ exceptions: ["reddit.com/message", "a.com"], allowMessages: true });
+    const pages = allowedPages({ exceptions: ["reddit.com/message", "a.com"], exceptionsOn: true, allowMessages: true });
     assert.equal(new Set(pages).size, pages.length);
     assert.equal(pages[0], "reddit.com/message");
     assert.equal(pages[1], "a.com");
     assert.ok(pages.includes("facebook.com/messages"));
     for (const p of pages) assert.equal(normaliseException(p), p);
+  });
+  test("presetSites is the sites of presets that are all on the list", () => {
+    assert.deepEqual(presetSites(["reddit.com", "x.com", "bbc.com", "a.com"]), ["reddit.com"]);
+    assert.deepEqual(presetSites(["x.com", "twitter.com"]), ["x.com", "twitter.com"]);
+  });
+  test("redirectedSites leaves out other sites while they're off", () => {
+    const sites = ["reddit.com", "x.com", "a.com"];
+    assert.deepEqual(redirectedSites({ sites, otherSitesOn: true }), sites);
+    assert.deepEqual(redirectedSites({ sites, otherSitesOn: false }), ["reddit.com"]);
   });
   test("message pages allow the message URLs but not the rest of the site", () => {
     const pages = allowedPages({ exceptions: [], allowMessages: true });
@@ -371,10 +385,13 @@ describe("saveLists / getLists with a stub storage", () => {
       sites: ["https://www.Reddit.com/r/x", "reddit.com", "", "a b", "x.com"],
       exceptions: ["reddit.com/r/x/", "https://reddit.com/r/x", "reddit.com/*"],
       allowMessages: 1,
-      suggestions: [" go outside ", "go outside", ""],
+      packsOff: ["Exercise", "Exercise", ""],
+      customOn: 1,
+      custom: [" go outside ", "go outside", ""],
     });
     assert.deepEqual(saved, {
-      sites: ["reddit.com", "x.com"], exceptions: ["reddit.com/r/x"], allowMessages: true, suggestions: ["go outside"],
+      sites: ["reddit.com", "x.com"], exceptions: ["reddit.com/r/x"], allowMessages: true,
+      packsOff: ["Exercise"], customOn: true, custom: ["go outside"],
     });
     assert.deepEqual(store, saved);
   });
@@ -384,9 +401,27 @@ describe("saveLists / getLists with a stub storage", () => {
     assert.deepEqual(store, { allowMessages: false });
   });
   test("getLists falls back to the defaults", async () => {
+    const { getLists, DEFAULT_LISTS } = await load();
+    assert.deepEqual(await getLists(), DEFAULT_LISTS);
+    assert.deepEqual(DEFAULT_LISTS, {
+      sites: DEFAULT_SITES, otherSitesOn: false, exceptions: [], exceptionsOn: false, allowMessages: false,
+      packsOff: [], customOn: false, custom: [],
+    });
+  });
+  test("a switch never saved is on when its list has lines", async () => {
     const { getLists, saveLists } = await load();
-    await saveLists({ suggestions: ["a"] });
+    await saveLists({ sites: [...DEFAULT_SITES, "a.com"], exceptions: ["a.com/x"], custom: ["a"] });
     const lists = await getLists();
-    assert.deepEqual(lists, { sites: DEFAULT_SITES, exceptions: [], allowMessages: false, suggestions: ["a"] });
+    assert.equal(lists.otherSitesOn, true);
+    assert.equal(lists.exceptionsOn, true);
+    assert.equal(lists.customOn, true);
+  });
+  test("a switch saved off stays off", async () => {
+    const { getLists, saveLists } = await load();
+    await saveLists({ sites: ["a.com"], otherSitesOn: false, exceptions: ["a.com/x"], exceptionsOn: false, custom: ["a"], customOn: false });
+    const lists = await getLists();
+    assert.equal(lists.otherSitesOn, false);
+    assert.equal(lists.exceptionsOn, false);
+    assert.equal(lists.customOn, false);
   });
 });

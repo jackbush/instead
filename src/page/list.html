@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000">
+  <meta name="robots" content="noindex">
+  <title>Every suggestion · Instead</title>
+  <link rel="icon" href="icons/icon-16.png" sizes="16x16">
+  <link rel="icon" href="icons/icon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="brand.css">
+  <script src="okhsl.js"></script>
+  <script src="background.js"></script>
+  <script type="module" src="list.js"></script>
+  <style>
+    :root { --pad: clamp(1.5rem, 6vw, 6rem); }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      padding: var(--pad);
+      background: var(--ink);
+      color: var(--ink);
+      font: 500 1.125rem/1.6 "Hanken Grotesk", system-ui, sans-serif;
+    }
+
+    /* The page behind is ink, so Safari tints its bars to match the text;
+       the canvas falls back to the primary if WebGL is unavailable. */
+    #bg { background: var(--primary); position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; }
+
+    main { max-width: 44rem; }
+
+    h1, h2 {
+      margin: 0;
+      font-family: Gloock, Georgia, serif;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.04;
+      text-wrap: balance;
+    }
+    h1 { font-size: clamp(3.15rem, 9.9vw, 6.5rem); margin-bottom: 1rem; }
+    h2 { font-size: clamp(1.9rem, 4vw, 2.5rem); margin: clamp(2.25rem, 5vw, 3.25rem) 0 0.75rem; }
+
+    p { margin: 0 0 1rem; text-wrap: pretty; }
+    ul { margin: 0; padding-left: 1.25rem; }
+    li { text-wrap: pretty; }
+    li + li { margin-top: 0.35rem; }
+    a { color: inherit; text-decoration-thickness: 0.08em; text-underline-offset: 0.2em; }
+    :focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+    .lede { max-width: 36rem; font-size: 1.375rem; line-height: 1.45; }
+  </style>
+</head>
+<body>
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <main>
+    <h1>Every suggestion</h1>
+    <p class="lede">Everything Instead might suggest, by kind. Turn the kinds on and off, and add your own, in the extension’s&nbsp;settings.</p>
+    <div id="packs"></div>
+  </main>
+</body>
+</html>

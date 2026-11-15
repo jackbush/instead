@@ -1,5 +1,5 @@
 import {
-  ext, PRESETS, DEFAULT_SITES, defaultSuggestions, getLists, saveLists,
+  ext, PRESETS, DEFAULT_LISTS, loadPacks, getLists, saveLists, redirectedSites,
   normaliseSite, normaliseException, sitesWithAccess, requestAccess,
 } from "./settings.js";
 import { parseLines } from "./shared.js";
@@ -13,16 +13,35 @@ const $ = (id) => document.getElementById(id);
 const resetButton = $("reset"), status = $("status"), access = $("access");
 const allowMessages = $("allow-messages");
 
-// A ticked preset puts its sites on the list; the textarea holds the rest.
-// Each preset gets a checkbox like the direct-messages one.
-const presets = PRESETS.map((preset) => {
+// The first install opens this page to welcome the user.
+if (new URLSearchParams(location.search).has("welcome")) {
+  $("title").textContent = document.title = "Welcome to Instead";
+  $("welcome").hidden = false;
+}
+
+// A checkbox like the direct-messages one, added to `group`.
+function checkbox(group, name) {
   const label = Object.assign(document.createElement("label"), { className: "check" });
   const box = Object.assign(document.createElement("input"), { type: "checkbox", disabled: true });
-  const text = Object.assign(document.createElement("span"), { textContent: preset.name });
+  const text = Object.assign(document.createElement("span"), { textContent: name });
   label.append(box, allowMessages.nextElementSibling.cloneNode(true), text);
-  $("presets").append(label);
-  return { preset, box };
-});
+  group.append(label);
+  return box;
+}
+
+// A ticked preset puts its sites on the list; the textarea holds the rest.
+const presets = PRESETS.map((preset) => ({ preset, box: checkbox($("presets"), preset.name) }));
+
+// A ticked pack's suggestions are shown; the ones unticked are saved as
+// packsOff. The packs come from suggestions.txt as the page loads, and go
+// before the Custom box.
+let packs = [];
+function addPacks(list) {
+  packs = list.map((pack) => ({ pack, box: checkbox($("packs"), pack.name) }));
+  for (const { box } of packs) box.addEventListener("change", () => settle("custom"));
+  $("packs").append(fields.custom.toggle.closest("label"));
+}
+const packsOff = () => packs.filter(({ box }) => !box.checked).map(({ pack }) => pack.name);
 
 // Ticks each preset whose sites are all on the list. Returns the sites
 // the ticked presets cover, which the textarea leaves out.
@@ -36,12 +55,32 @@ function tickPresets(sites) {
 }
 
 // One entry per textarea. `normalise` gives the saved form of a line, or null
-// if it isn't valid.
-const fields = {
-  sites: { el: $("sites"), note: $("sites-note"), normalise: normaliseSite, what: "a site" },
-  exceptions: { el: $("exceptions"), note: $("exceptions-note"), normalise: normaliseException, what: "a web address" },
-  suggestions: { el: $("suggestions"), note: $("suggestions-note"), normalise: (line) => line, extraLine: true },
+// if it isn't valid. Each sits in `wrap` behind the checkbox `toggle`, saved
+// as `on`: ticked shows the field and turns its lines on; unticked hides it
+// and keeps the lines, turned off.
+const toggled = (toggle, on, wrap) => {
+  toggle.setAttribute("aria-controls", wrap);
+  return { toggle, on, wrap: $(wrap) };
 };
+const fields = {
+  sites: {
+    el: $("sites"), note: $("sites-note"), normalise: normaliseSite, what: "a site",
+    ...toggled(checkbox($("presets"), "Custom"), "otherSitesOn", "sites-field"),
+  },
+  exceptions: {
+    el: $("exceptions"), note: $("exceptions-note"), normalise: normaliseException, what: "a web address",
+    ...toggled($("exceptions-on"), "exceptionsOn", "exceptions-field"),
+  },
+  custom: {
+    el: $("custom"), note: $("custom-note"), normalise: (line) => line, extraLine: true,
+    ...toggled(checkbox($("packs"), "Custom"), "customOn", "custom-field"),
+  },
+};
+
+function showField(field) {
+  field.wrap.hidden = !field.toggle.checked;
+  fit(field);
+}
 
 let saved = {};            // what's in storage
 let granted = new Set();   // saved sites the extension has host access to
@@ -53,7 +92,7 @@ paintBackground($("bg"));
 addEventListener("resize", () => fitAll());
 cutOut($("preview"));
 
-// Size a textarea to its text; the suggestions get one extra line.
+// Size a textarea to its text; the user's own suggestions get one extra line.
 function fit({ el, extraLine }) {
   el.style.height = "auto";
   const frame = el.offsetHeight - el.clientHeight;
@@ -96,9 +135,10 @@ function setNotes(key, messages, { problems = true } = {}) {
   el.setAttribute("aria-invalid", problems && messages.length ? "true" : "false");
 }
 
-// An empty suggestions list isn't saved as "no suggestions": the page falls
-// back to the bundled ones, so say so.
-const emptySuggestions = (list) => list.length ? [] : [["The built-in suggestions are used while this list is empty."]];
+// With every pack off and none of their own, the page shows every pack
+// (suggestionsFor), so say so.
+const noSuggestions = (custom) => packsOff().length === packs.length && !(fields.custom.toggle.checked && custom.length)
+  ? [["With every kind turned off and none of your own, you’ll get all of them."]] : [];
 
 const code = (text) => Object.assign(document.createElement("code"), { textContent: text });
 
@@ -123,19 +163,23 @@ function setFailure(message) {
 function render(lists) {
   saved = lists;
   const covered = tickPresets(lists.sites);
+  for (const { pack, box } of packs) box.checked = !lists.packsOff.includes(pack.name);
   for (const [key, field] of Object.entries(fields)) {
+    field.toggle.checked = lists[field.on];
+    field.wrap.hidden = !lists[field.on];
     field.el.value = lists[key].filter((line) => key !== "sites" || !covered.has(line)).join("\n");
-    setNotes(key, key === "suggestions" ? emptySuggestions(lists[key]) : []);
+    setNotes(key, key === "custom" ? noSuggestions(lists[key]) : [], { problems: false });
   }
   allowMessages.checked = lists.allowMessages;
   fitAll();
 }
 
-// A note under the sites, only when some saved sites can't be redirected
+// A note under the sites, only when some redirected sites can't be
 // because the browser hasn't given the extension access to them.
 async function refreshAccess() {
-  granted = new Set(await sitesWithAccess(saved.sites));
-  const missing = saved.sites.filter((s) => !granted.has(s));
+  const sites = redirectedSites(saved);
+  granted = new Set(await sitesWithAccess(sites));
+  const missing = sites.filter((s) => !granted.has(s));
   if (!missing.length) return access.replaceChildren();
   if (access.children.length) return;
   const button = document.createElement("button");
@@ -150,7 +194,7 @@ async function refreshAccess() {
 // requestAccess comes first: Firefox only shows the prompt before the first await.
 access.addEventListener("click", async (e) => {
   if (!e.target.closest("button")) return;
-  const request = requestAccess(saved.sites.filter((s) => !granted.has(s)));
+  const request = requestAccess(redirectedSites(saved).filter((s) => !granted.has(s)));
   try {
     if (!(await request)) setStatus("message", "Access wasn’t granted");
   } catch (error) {
@@ -169,6 +213,8 @@ async function save() {
   const ticked = presets.filter(({ box }) => box.checked).flatMap(({ preset }) => preset.sites);
   lists.sites = [...new Set([...ticked, ...lists.sites])];
   lists.allowMessages = allowMessages.checked;
+  lists.packsOff = packsOff();
+  for (const field of Object.values(fields)) lists[field.on] = field.toggle.checked;
 
   const tooLong = Object.keys(fields).find((k) => bytes(k, lists[k]) > QUOTA_BYTES_PER_ITEM);
   if (tooLong) return fail(tooLong);
@@ -200,7 +246,7 @@ async function settle(key) {
     const covered = key === "sites" ? tickPresets(saved.sites) : new Set();
     const text = result[key].text.split("\n").filter((line) => !covered.has(line)).join("\n");
     if (el.value !== text) { el.value = text; fit(fields[key]); }
-    if (key === "suggestions") setNotes(key, emptySuggestions(result[key].valid), { problems: false });
+    if (key === "custom") setNotes(key, noSuggestions(result[key].valid), { problems: false });
     else setNotes(key, result[key].invalid.map((line) => [code(line), ` isn’t ${fields[key].what}, so it’s left out.`]));
   }
   await refreshAccess();
@@ -215,6 +261,17 @@ for (const [key, field] of Object.entries(fields)) {
     saveTimer = setTimeout(save, SAVE_DELAY_MS);
   });
   field.el.addEventListener("change", () => settle(key));
+  // Ticking Custom under the sites asks for access to them at once (Firefox
+  // only shows the prompt before the first await).
+  field.toggle.addEventListener("change", () => {
+    if (key === "sites" && field.toggle.checked) {
+      const missing = saved.sites.filter((s) => !granted.has(s));
+      if (missing.length) requestAccess(missing).catch(() => {});
+    }
+    showField(field);
+    if (field.toggle.checked && !field.el.value) field.el.focus();
+    settle(key);
+  });
 }
 allowMessages.addEventListener("change", () => settle());
 
@@ -230,10 +287,9 @@ for (const { preset, box } of presets) {
 }
 
 resetButton.addEventListener("click", async () => {
-  if (!confirm("Reset the sites, always-allowed pages and suggestions to their defaults? Your changes will be lost.")) return;
-  const defaults = { sites: DEFAULT_SITES, exceptions: [], allowMessages: false, suggestions: await defaultSuggestions() };
+  if (!confirm("Reset the sites, always-allowed pages and suggestions to their defaults? Your own suggestions will be deleted.")) return;
   try {
-    render(await saveLists(defaults));
+    render(await saveLists(DEFAULT_LISTS));
     failure = "";
     await refreshAccess();
     setStatus("message", "Reset to defaults");
@@ -254,10 +310,11 @@ ext.permissions.onAdded?.addListener(() => refreshAccess());
 ext.permissions.onRemoved?.addListener(() => refreshAccess());
 
 try {
+  addPacks(await loadPacks());
   render(await getLists());
-  for (const { el } of Object.values(fields)) el.disabled = false;
+  for (const { el, toggle } of Object.values(fields)) el.disabled = toggle.disabled = false;
   allowMessages.disabled = false;
-  for (const { box } of presets) box.disabled = false;
+  for (const { box } of [...presets, ...packs]) box.disabled = false;
   resetButton.disabled = false;
   document.fonts.ready.then(fitAll);
   await refreshAccess();

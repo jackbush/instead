@@ -19,7 +19,8 @@
   <canvas id="bg" aria-hidden="true"></canvas>
   <main>
     <header class="intro">
-      <h1>Settings</h1>
+      <h1 id="title">Settings</h1>
+      <p id="welcome" class="lede" hidden>Choose the sites to send here and the kinds of things you’d like to do instead. They’re saved as you go, and you can change them any time from Instead’s button in your&nbsp;browser.</p>
       <p class="lede"><b>Instead</b> has no server and collects nothing: your settings stay in your browser, which syncs them to your other devices if you’ve turned on&nbsp;syncing.</p>
       <div class="intro-actions">
         <a id="preview" class="btn cut-out" href="demo.html" target="_blank" rel="noopener"><span>Preview</span><svg class="icon" aria-hidden="true" viewBox="0 0 256 256"><path d="M204,64V168a12,12,0,0,1-24,0V93L72.49,200.49a12,12,0,0,1-17-17L163,76H88a12,12,0,0,1,0-24H192A12,12,0,0,1,204,64Z"/></svg><span class="visually-hidden"> (opens in a new tab)</span></a>
@@ -32,9 +33,11 @@
         <h2 id="sites-h">Sites to redirect</h2>
         <p class="help">Subdomains are included.</p>
         <div id="presets" class="presets" role="group" aria-labelledby="sites-h"></div>
-        <p id="sites-help" class="help">Other sites, one per line.</p>
-        <textarea id="sites" name="sites" rows="1" placeholder="example.com" aria-labelledby="sites-help" aria-describedby="sites-note access" spellcheck="false" autocapitalize="off" autocomplete="off" disabled></textarea>
-        <ul id="sites-note" class="note" aria-live="polite"></ul>
+        <div id="sites-field" hidden>
+          <p id="sites-help" class="help">Other sites, one per line.</p>
+          <textarea id="sites" name="sites" rows="1" placeholder="example.com" aria-labelledby="sites-help" aria-describedby="sites-note access" spellcheck="false" autocapitalize="off" autocomplete="off" disabled></textarea>
+          <ul id="sites-note" class="note" aria-live="polite"></ul>
+        </div>
         <ul id="access" class="note" aria-live="polite"></ul>
       </section>
 
@@ -43,18 +46,29 @@
         <label class="check">
           <input id="allow-messages" type="checkbox" disabled>
           <span class="box" aria-hidden="true"><svg viewBox="0 0 256 256"><path d="M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z"/></svg></span>
-          <span>Direct messages on redirected sites, such as <b>facebook.com/messages</b></span>
+          <span>Direct messages on redirected sites</span>
         </label>
-        <p id="exceptions-help" class="help">Other pages that are never redirected, one per line.</p>
-        <textarea id="exceptions" name="exceptions" rows="1" placeholder="reddit.com/r/name" aria-labelledby="exceptions-h" aria-describedby="exceptions-help exceptions-note" spellcheck="false" autocapitalize="off" autocomplete="off" disabled></textarea>
-        <ul id="exceptions-note" class="note" aria-live="polite"></ul>
+        <label class="check">
+          <input id="exceptions-on" type="checkbox" aria-controls="exceptions-field" disabled>
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 256 256"><path d="M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z"/></svg></span>
+          <span>Allow specific pages, like a group or subreddit</span>
+        </label>
+        <div id="exceptions-field" hidden>
+          <p id="exceptions-help" class="help">Pages that are never redirected, one per line.</p>
+          <textarea id="exceptions" name="exceptions" rows="1" placeholder="reddit.com/r/name" aria-labelledby="exceptions-h" aria-describedby="exceptions-help exceptions-note" spellcheck="false" autocapitalize="off" autocomplete="off" disabled></textarea>
+          <ul id="exceptions-note" class="note" aria-live="polite"></ul>
+        </div>
       </section>
 
       <section>
         <h2 id="suggestions-h">Suggestions</h2>
-        <p id="suggestions-help" class="help">One per line.</p>
-        <textarea id="suggestions" name="suggestions" rows="1" aria-labelledby="suggestions-h" aria-describedby="suggestions-help suggestions-note" spellcheck="true" disabled></textarea>
-        <ul id="suggestions-note" class="note" aria-live="polite"></ul>
+        <p class="help">Choose the kinds you’d like. <a href="list.html" target="_blank" rel="noopener">See every suggestion<span class="visually-hidden"> (opens in a new tab)</span></a></p>
+        <div id="packs" class="presets" role="group" aria-labelledby="suggestions-h"></div>
+        <div id="custom-field" hidden>
+          <p id="custom-help" class="help">Add your own, one per line.</p>
+          <textarea id="custom" name="custom" rows="1" placeholder="Water the plants" aria-labelledby="custom-help" spellcheck="true" disabled></textarea>
+        </div>
+        <ul id="custom-note" class="note" aria-live="polite"></ul>
       </section>
 
     </div>

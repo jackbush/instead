@@ -10,6 +10,7 @@
   "scripts": {
     "build": "sh scripts/build.sh",
     "serve": "npm run build && python3 -m http.server --directory dist/site 8000",
+    "preview": "node scripts/preview.mjs",
     "test": "node --test",
     "lint": "npm run build && npx --yes web-ext@10.8.0 lint --source-dir dist/firefox --warnings-as-errors",
     "e2e": "node scripts/e2e-extension.mjs",

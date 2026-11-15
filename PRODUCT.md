@@ -21,7 +21,7 @@ Blockers say no. Instead suggests something better and leaves the choice with yo
 ## Operating Context
 
 - The suggestion page (`demo.html`) is shared by the extension and the website, where it runs as a live demo.
-- Settings open from the toolbar button: sites to redirect (one-click presets plus any others), always-allowed pages (with a direct-messages checkbox), and the user's own suggestions, saved as you go.
+- Settings open from the toolbar button: sites to redirect (one-click presets, plus Custom for any others), always-allowed pages (direct messages, plus specific pages), and suggestions (packs, plus Custom for the user's own), each extra field behind its own checkbox, saved as you go. The first install opens them with a welcome.
 - The website is a static GitHub Pages site at jackbush.github.io/instead/.
 
 ## Capabilities and Constraints
@@ -34,7 +34,7 @@ Blockers say no. Instead suggests something better and leaves the choice with yo
 ## Brand Commitments
 
 - Name: Instead. Tagline: "Fun, free and fulfilling activities to do instead of falling into a screen."
-- Suggestions are imperative, sentence case, everyday activities ("Find a leaf and draw it").
+- Suggestions follow [SUGGESTIONS.md](SUGGESTIONS.md): a short, free, finite thing to do now, starting with a verb ("Find a leaf and draw it").
 - Every load and every new suggestion brings a new hue; the change of colour is part of the product.
 - Icon: Phosphor hand-palm, black with a white outline.
 

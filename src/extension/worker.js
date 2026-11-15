@@ -4,7 +4,7 @@
 // can stop it at any time, so all state lives in storage and DNR rules.
 
 import {
-  ext, DEFAULT_SITES, defaultSuggestions, getLists, allowedPages,
+  ext, DEFAULT_SITES, loadPacks, getLists, redirectedSites, allowedPages,
   originFor, siteFor, isException, exceptionFilter, sitesWithAccess,
 } from "./settings.js";
 
@@ -35,7 +35,7 @@ function serial(task) {
 // extension has host access to.
 async function rebuild() {
   const lists = await getLists();
-  const allowed = await sitesWithAccess(lists.sites);
+  const allowed = await sitesWithAccess(redirectedSites(lists));
 
   const rules = allowedPages(lists).map((e, i) => ({
     id: i + 2,
@@ -78,8 +78,7 @@ async function getBypasses() {
 }
 
 async function bypass(tabId, url) {
-  const { sites } = await getLists();
-  const site = siteFor(url, sites);
+  const site = siteFor(url, redirectedSites(await getLists()));
   if (!site) return;
   const bypasses = await getBypasses();
   const ids = Object.keys(bypasses).map(Number);
@@ -127,7 +126,7 @@ async function armAlarm(bypasses) {
 // The page to send a tab to, or null to leave it: for the URL watcher.
 async function redirectFor(tabId, url) {
   const lists = await getLists();
-  const site = siteFor(url, lists.sites);
+  const site = siteFor(url, redirectedSites(lists));
   if (!site || isException(url, allowedPages(lists))) return null;
   if (!(await sitesWithAccess([site])).length) return null;
   const bypasses = Object.values(await getBypasses());
@@ -153,14 +152,20 @@ ext.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-ext.runtime.onInstalled.addListener(() => serial(async () => {
+// A first install opens the settings, to choose the sites and packs.
+ext.runtime.onInstalled.addListener(({ reason }) => serial(async () => {
   const saved = await ext.storage.sync.get(["sites", "suggestions"]);
-  const missing = {};
-  if (!saved.sites) missing.sites = DEFAULT_SITES;
-  if (!saved.suggestions) missing.suggestions = await defaultSuggestions();
-  await ext.storage.sync.set(missing);
+  if (!saved.sites) await ext.storage.sync.set({ sites: DEFAULT_SITES });
+  // Settings from before the packs kept one list of suggestions: the lines
+  // that aren't in a pack become the user's own.
+  if (saved.suggestions) {
+    const bundled = new Set((await loadPacks()).flatMap((p) => p.items));
+    await ext.storage.sync.set({ custom: saved.suggestions.filter((s) => !bundled.has(s)) });
+    await ext.storage.sync.remove("suggestions");
+  }
   await rebuild();
   await expire();
+  if (reason === "install") await ext.tabs.create({ url: ext.runtime.getURL("options.html?welcome") });
 }));
 
 ext.runtime.onStartup.addListener(() => serial(async () => {
@@ -169,7 +174,8 @@ ext.runtime.onStartup.addListener(() => serial(async () => {
 }));
 
 ext.storage.onChanged.addListener((changes, area) => {
-  if (area === "sync" && (changes.sites || changes.exceptions || changes.allowMessages)) serial(rebuild);
+  const keys = ["sites", "otherSitesOn", "exceptions", "exceptionsOn", "allowMessages"];
+  if (area === "sync" && keys.some((k) => changes[k])) serial(rebuild);
 });
 ext.permissions.onAdded.addListener(() => serial(rebuild));
 ext.permissions.onRemoved.addListener(() => serial(rebuild));

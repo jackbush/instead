@@ -52,6 +52,7 @@ section + section { margin-top: clamp(2.25rem, 5vw, 3.25rem); }
   margin: 0.6rem 0 1rem;
   text-wrap: pretty;
 }
+.help a { color: inherit; text-decoration-thickness: 0.08em; text-underline-offset: 0.2em; }
 
 /* A checkbox drawn to match the fields: the real input sits invisibly over the box. */
 .check {
@@ -87,7 +88,7 @@ section + section { margin-top: clamp(2.25rem, 5vw, 3.25rem); }
 .check input:focus-visible + .box { outline: 2px solid var(--ink); outline-offset: 3px; }
 .check input:disabled + .box { opacity: 0.6; }
 
-/* The preset sites, ticked to redirect them. */
+/* The preset sites, ticked to redirect them, and the suggestion packs. */
 .presets {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
@@ -109,7 +110,7 @@ textarea {
   resize: none;
   overflow-y: hidden;
 }
-#suggestions { max-height: 70dvh; overflow-y: auto; }
+#custom { max-height: 70dvh; overflow-y: auto; }
 textarea:disabled { opacity: 0.6; }
 textarea::placeholder { color: color-mix(in oklab, var(--ink) 60%, transparent); opacity: 1; }
 textarea[aria-invalid="true"] { border-style: dashed; }

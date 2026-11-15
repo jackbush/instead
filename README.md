@@ -15,17 +15,19 @@ Instead has no server and collects nothing. Its settings live in your browser, w
 - **Offers a way through.** After five seconds a "Take me to …" link appears. It lets that tab onto the site for 15 minutes, or until the tab closes.
 - **Watches in-page navigation.** These sites change pages without reloading, so a small script on them catches moves from an allowed page to a redirected one.
 
-The toolbar button opens the settings, which save as you go:
+The first install opens the settings, with a welcome; after that the toolbar button opens them. They save as you go:
 
-- **Sites to redirect:** one-click checkboxes for Facebook, Instagram, Reddit, TikTok, YouTube, Twitter/X and LinkedIn (on by default), and a group of news sites, then any other sites, one per line. Ticking a site that isn't on by default asks the browser for access to it.
-- **Always allowed:** a checkbox for direct messages on redirected sites, such as facebook.com/messages, and a list of other pages, as the start of an address, such as `reddit.com/r/name`.
-- **Suggestions**, as below.
+- **Sites to redirect:** one-click checkboxes for Facebook, Instagram, Reddit, TikTok, YouTube, Twitter/X and LinkedIn (on by default), and a group of news sites, then Custom, which shows a field for any other sites, one per line. Ticking a site that isn't on by default asks the browser for access to it.
+- **Always allowed:** a checkbox for direct messages on redirected sites, and Allow specific pages, which shows a field for pages as the start of an address, such as `reddit.com/r/name`.
+- **Suggestions:** a checkbox for each pack (all on by default), and Custom, which shows a field for your own, one per line.
+
+Each field sits behind its checkbox, off until it has something in it. Unticking one keeps its lines but stops using them.
 
 ## Suggestions
 
-The default suggestions are in `src/shared/suggestions.txt`, one per line. A line can include Markdown links: `Listen to [Dharmapunx](https://www.dharmapunxnyc.com/)`.
+The suggestions are in `src/shared/suggestions.txt`, one per line, in packs: each pack starts with a `# Name` line. [SUGGESTIONS.md](SUGGESTIONS.md) is the guide to writing them. A line can include Markdown links: `Listen to [Dharmapunx](https://www.dharmapunxnyc.com/)`.
 
-The website always reads this file. The extension copies it on install, and from then on uses the list in its settings; Reset to defaults copies it again.
+The website and the extension both read this file. The extension's settings store only the names of the packs turned off and the user's own suggestions (with whether they're on), so a new or changed suggestion reaches everyone with the next version. `list.html`, unlinked from the website, lists every suggestion by pack.
 
 ## Build and distribution
 
@@ -54,18 +56,26 @@ npm run serve
 
 Then [open localhost:8000](http://localhost:8000). Run it again after a change.
 
+To try the extension's settings without installing it, serve its pages with a stand-in for the extension API (`scripts/fake-extension.js`):
+
+```bash
+npm run preview
+```
+
+Then [open the settings](http://localhost:8001/options.html?welcome). They're kept in the browser's local storage for that address, and the suggestion page at [localhost:8001/demo.html](http://localhost:8001/demo.html) uses them. The pages are served straight from `src/`, so reload to see an edit. Nothing is redirected: that needs the real extension.
+
 On the website, press `\` to show or hide the colour settings (the extension has no such key). The primary hue is random on each load and each new suggestion, and every other colour is derived from it. Defaults for the colours and the gradient are at the top of `src/shared/background.js`.
 
 Where things live:
 
-- `src/page/`: the suggestion page (`demo.html`, `app.js`), which the extension opens and the website shows as a live demo
+- `src/page/`: the suggestion page (`demo.html`, `app.js`), which the extension opens and the website shows as a live demo, and the list of every suggestion (`list.html`, `list.js`)
 - `src/extension/`: the manifest, redirect rules (`worker.js`), in-page watcher (`content.js`) and settings page
 - `src/shared/`: what both need
   - `background.js` and `okhsl.js`: the gradient and colour maths
   - `brand.css`: shared colour fallbacks, line weight, warning icon and pill buttons
   - `cutout.js`: buttons whose label is cut out of the pill
   - `settings.js`: the default sites and the URL and list logic
-  - `shared.js`: the shuffle, line splitting and Markdown-link parsing
+  - `shared.js`: the shuffle, line and pack parsing, and Markdown-link parsing
   - `suggestions.txt`, `fonts/` and `icons/`
 - `website/`: the marketing site, its privacy page, link-preview image and screenshots (`shots/`)
 - `test/`: unit tests; `scripts/`: the build, image renders and end-to-end test

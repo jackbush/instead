@@ -15,23 +15,25 @@ const ext = [globalThis.browser, globalThis.chrome].find((api) => api?.runtime?.
 const framed = top !== self;
 
 // The shared helpers (src/shared/shared.js).
-let shuffle, parseLines, parseLinks;
+let shuffle, parsePacks, suggestionsFor, parseLinks;
 const shared = import("./shared.js")
-  .then((m) => ({ shuffle, parseLines, parseLinks } = m));
+  .then((m) => ({ shuffle, parsePacks, suggestionsFor, parseLinks } = m));
 
-// The extension's saved list if it has one, otherwise the bundled file, and
-// one line of its own if that fails too: the page always has a suggestion.
+// The bundled packs less the ones the extension's settings turn off, plus the
+// user's own; on the website, every pack. One line of its own if that fails:
+// the page always has a suggestion.
 async function loadSuggestions() {
+  let choices = {};
   try {
-    const saved = (await ext?.storage.sync.get("suggestions"))?.suggestions;
-    if (saved?.length) return saved;
+    choices = await ext?.storage.sync.get(["packsOff", "customOn", "custom"]) ?? {};
   } catch {}
+  let packs = [];
   try {
     const response = await fetch("suggestions.txt");
-    const lines = parseLines(await response.text());
-    if (response.ok && lines.length) return lines;
+    if (response.ok) packs = parsePacks(await response.text());
   } catch {}
-  return ["Go for a run"];
+  const lines = suggestionsFor(packs, choices);
+  return lines.length ? lines : ["Go for a run"];
 }
 
 // The line as text and links (see parseLinks). With `glue`, the last two words

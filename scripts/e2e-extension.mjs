@@ -1,4 +1,5 @@
 // Checks the built Chrome extension end to end in Chrome for Testing:
+//   0. installing opens the settings with a welcome
 //   1. a listed site lands on demo.html?from=<url>, and the site gets no request
 //   2. an always-allowed page (a direct-message page, once that setting is on) loads
 //   3. a pushState move from that page to a redirected one is caught
@@ -171,6 +172,11 @@ try {
   const { id } = await send("Extensions.loadUnpacked", { path: build(join(work, "repo")) });
   const page = `chrome-extension://${id}/demo.html`;
   const pageFor = (url) => `${page}?from=${url}`;
+
+  const welcome = `chrome-extension://${id}/options.html?welcome`;
+  await waitFor("the install to open the settings", async () =>
+    (await send("Target.getTargets")).targetInfos.some((t) => t.url === welcome));
+  pass("installing opens the settings with a welcome");
 
   // An extension page for reading and changing the extension's state.
   const control = await openTab(send, page);

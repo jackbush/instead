@@ -13,6 +13,25 @@ export function shuffle(list) {
 // The non-blank lines of a text file, trimmed.
 export const parseLines = (text) => text.split("\n").map((l) => l.trim()).filter(Boolean);
 
+// suggestions.txt as [{ name, items }]: each pack starts with a "# Name" line
+// and holds the lines under it. Lines before the first heading belong to no pack.
+export function parsePacks(text) {
+  const packs = [];
+  for (const line of parseLines(text)) {
+    const heading = /^#\s+(.+)/.exec(line);
+    if (heading) packs.push({ name: heading[1], items: [] });
+    else packs.at(-1)?.items.push(line);
+  }
+  return packs;
+}
+
+// The suggestions to show: the packs that aren't turned off, then the user's
+// own if they're on. With nothing left, every pack.
+export function suggestionsFor(packs, { packsOff = [], customOn = false, custom = [] } = {}) {
+  const list = [...packs.filter((p) => !packsOff.includes(p.name)).flatMap((p) => p.items), ...(customOn ? custom : [])];
+  return list.length ? list : packs.flatMap((p) => p.items);
+}
+
 // [text](url). As in Markdown, the url may hold balanced parentheses, like
 // Wikipedia's, but no spaces. The text holds no brackets, so
 // "[a [b](url)" links "b".
