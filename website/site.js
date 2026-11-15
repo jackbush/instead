@@ -18,7 +18,7 @@ for (const group of document.querySelectorAll("[data-install]")) {
   cutOut(first);
 }
 
-const shared = import("./extension/shared.js"); // shuffle, parseLines, plainText
+const shared = import("./shared.js"); // shuffle, parseLines, plainText
 
 // "Instead, find a leaf and draw it." from a line of suggestions.txt with its
 // links as plain text: the first letter drops to lower case.

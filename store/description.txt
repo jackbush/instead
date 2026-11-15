@@ -5,10 +5,10 @@ Open Facebook, Instagram, Reddit or TikTok and, in place of the feed, you get on
 Blockers say no. Instead says what else you could do, and leaves the choice with you.
 
 Make it yours
-• Choose which sites to redirect: YouTube, Twitter/X and LinkedIn are on from the start too, news sites are one click away, or add your own. Subdomains are included.
-• Keep the useful parts: let direct messages through, or allow particular pages, such as a single subreddit.
+• Choose which sites to redirect: social media is on from the start, news sites are one click away, or add your own.
+• Keep the useful parts: let direct messages through, or allow particular pages.
 • Write your own suggestions, one per line.
-• Open settings from the toolbar button. Changes save as you go.
+• Open settings from the toolbar button.
 
 Private by design
 Instead has no server and collects nothing. Your settings stay in your browser, which syncs them between your devices if you've turned on syncing. Redirects happen inside the browser before the site loads, and Instead only asks for access to the sites on your list.

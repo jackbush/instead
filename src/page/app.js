@@ -14,10 +14,9 @@ const ext = [globalThis.browser, globalThis.chrome].find((api) => api?.runtime?.
 // tab. Comparing the two windows is allowed across origins.
 const framed = top !== self;
 
-// The shared helpers (extension/shared.js). The extension flattens extension/
-// into the page's own folder.
+// The shared helpers (src/shared/shared.js).
 let shuffle, parseLines, parseLinks;
-const shared = import(ext ? "./shared.js" : "./extension/shared.js")
+const shared = import("./shared.js")
   .then((m) => ({ shuffle, parseLines, parseLinks } = m));
 
 // The extension's saved list if it has one, otherwise the bundled file, and
@@ -136,7 +135,7 @@ function offerOriginal(from) {
 // the demo can't send anyone elsewhere. A framed copy offers none.
 const from = !framed && location.search.startsWith("?from=") && location.search.slice(6) + location.hash;
 if (from && /^https?:\/\//i.test(from) && URL.canParse(from)) {
-  const allowed = ext || import("./extension/settings.js")
+  const allowed = ext || import("./settings.js")
     .then(({ DEFAULT_SITES, siteFor }) => siteFor(from, DEFAULT_SITES))
     .catch(() => false);
   Promise.resolve(allowed).then((ok) => { if (ok) setTimeout(offerOriginal, 5000, from); });

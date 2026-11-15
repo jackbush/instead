@@ -160,7 +160,7 @@ Translucent ink tints (via `color-mix` in OKLab) do the remaining work: 10–12%
 
 **Character:** A sharp, high-contrast display serif set tight and huge, paired with a friendly grotesque at a slightly heavy regular (500). The serif makes the suggestion feel like a sentence worth reading; the grotesque keeps everything around it quiet.
 
-Both are self-hosted (`fonts/fonts.css`), Latin subset. Gloock loads with `font-display: block` so the display never flashes in Georgia; Hanken uses `swap`.
+Both are self-hosted (`src/shared/fonts/fonts.css`), Latin subset. Gloock loads with `font-display: block` so the display never flashes in Georgia; Hanken uses `swap`.
 
 ### Hierarchy
 - **Display** (400, clamp(3rem, 8.4vw, 8.5rem), 1.04): the marketing hero sentence, max 15ch, balanced wrap.

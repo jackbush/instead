@@ -1,4 +1,4 @@
-// Tests for the pure list and URL logic in extension/settings.js. Run with `node --test`.
+// Tests for the pure list and URL logic in src/shared/settings.js. Run with `node --test`.
 // Node has no `chrome`/`browser` global, so `ext` is undefined; only the pure exports are used here,
 // plus saveLists/getLists against a stub storage (loaded as a separate module instance).
 import { test, describe } from "node:test";
@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import {
   PRESETS, DEFAULT_SITES, allowedPages, normaliseSite, normaliseException,
   originFor, siteFor, isException, exceptionFilter,
-} from "../extension/settings.js";
+} from "../src/shared/settings.js";
 
 // Chrome's documented urlFilter semantics, for the `||` and `^` tokens only:
 // https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest#type-RuleCondition
@@ -361,7 +361,7 @@ describe("saveLists / getLists with a stub storage", () => {
       get: async (keys) => Object.fromEntries(keys.filter((k) => k in store).map((k) => [k, store[k]])),
       set: async (o) => Object.assign(store, o),
     } } };
-    const mod = await import(`../extension/settings.js?stub=${Math.random()}`);
+    const mod = await import(`../src/shared/settings.js?stub=${Math.random()}`);
     delete globalThis.chrome;
     return { store, ...mod };
   }

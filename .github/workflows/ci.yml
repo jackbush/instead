@@ -22,12 +22,10 @@ jobs:
           node-version: 22
 
       - name: Unit tests
-        run: node --test
+        run: npm test
 
-      - name: Build the extension
-        run: sh scripts/build-extension.sh
-
-      # The tree lints clean today, so warnings fail the job too; the pinned
-      # version keeps new rules from turning it red on their own.
-      - name: Lint the Firefox build
-        run: npx --yes web-ext@10.8.0 lint --source-dir dist/firefox --warnings-as-errors
+      # Builds everything, then lints the Firefox build. The tree lints clean,
+      # so warnings fail the job too; web-ext's version is pinned in
+      # package.json so new rules can't turn it red on their own.
+      - name: Build and lint
+        run: npm run lint

@@ -23,69 +23,73 @@ The toolbar button opens the settings, which save as you go:
 
 ## Suggestions
 
-The default suggestions are in `suggestions.txt`, one per line. A line can include Markdown links: `Listen to [Dharmapunx](https://www.dharmapunxnyc.com/)`.
+The default suggestions are in `src/shared/suggestions.txt`, one per line. A line can include Markdown links: `Listen to [Dharmapunx](https://www.dharmapunxnyc.com/)`.
 
 The website always reads this file. The extension copies it on install, and from then on uses the list in its settings; Reset to defaults copies it again.
 
 ## Build and distribution
 
-Build the extension from the repo root:
+Build everything (it needs only Node 22 or later and `zip`; there are no dependencies to install):
 
 ```bash
-sh scripts/build-extension.sh
+npm run build
 ```
 
-This makes a build for each browser, `dist/chrome/` and `dist/firefox/`, from the page files at the root and the files in `extension/`, each with only its browser's manifest keys. Their zips, `dist/instead-chrome.zip` and `dist/instead-firefox.zip`, are what you upload to each store.
+This makes three flat builds in `dist/`: one for each browser, `dist/chrome/` and `dist/firefox/`, each with only its browser's manifest keys, and the website, `dist/site/`. Their zips, `dist/instead-chrome.zip` and `dist/instead-firefox.zip`, are what you upload to each store. The website is published from `dist/site/` by `.github/workflows/pages.yml` on every push to main.
 
 To install it from the build:
 
 - **Chrome:** open `chrome://extensions`, turn on Developer mode, choose Load unpacked, and pick `dist/chrome`.
 - **Firefox:** open `about:debugging#/runtime/this-firefox`, choose Load Temporary Add-on, and pick `dist/firefox/manifest.json`. It's removed when Firefox restarts; to keep it, use Firefox Developer Edition: set `xpinstall.signatures.required` to false in `about:config`, then install `dist/instead-firefox.zip` from `about:addons` with Install Add-on From File. Or have Mozilla sign it for free as an unlisted add-on. If settings ask for permission under the sites, click Allow.
 
-Instead will be available soon on [Firefox Add-ons](https://addons.mozilla.org/en-GB/firefox/addon/instead-do-this/) and the [Chrome Web Store](https://chromewebstore.google.com/detail/pjlabllieiaoigjcolbkjafijbgomeoh). To check or sign the Firefox build with Mozilla's `web-ext` tool, use Node 22; it crashes on Node 24.
+Instead will be available soon on [Firefox Add-ons](https://addons.mozilla.org/en-GB/firefox/addon/instead-do-this/) and the [Chrome Web Store](https://chromewebstore.google.com/detail/pjlabllieiaoigjcolbkjafijbgomeoh). `npm run lint` builds and checks the Firefox build with Mozilla's `web-ext` tool; like signing with it, that needs Node 22, as it crashes on Node 24.
 
 ## Running locally and editing the page
 
-Serve the repo root:
+Build and serve the website:
 
 ```bash
-python3 -m http.server 8765
+npm run serve
 ```
 
-Then [open localhost:8765](http://localhost:8765).
+Then [open localhost:8000](http://localhost:8000). Run it again after a change.
 
-On the website, press `\` to show or hide the colour settings (the extension has no such key). The primary hue is random on each load and each new suggestion, and every other colour is derived from it. Defaults for the colours and the gradient are at the top of `background.js`.
+On the website, press `\` to show or hide the colour settings (the extension has no such key). The primary hue is random on each load and each new suggestion, and every other colour is derived from it. Defaults for the colours and the gradient are at the top of `src/shared/background.js`.
 
 Where things live:
 
-- `index.html`, `site.js` and `site/`: the marketing site and its screenshots
-- `demo.html` and `app.js`: the suggestion page, which the extension opens and the site shows as a live demo
-- `background.js` and `okhsl.js`: the gradient and colour maths
-- `brand.css`: shared colour fallbacks, line weight, warning icon and pill buttons
-- `cutout.js`: buttons whose label is cut out of the pill
-- `extension/`: the manifest, redirect rules, in-page watcher and settings page, and `shared.js`, the shuffle, line splitting and Markdown-link parsing that the site, the suggestion page and the settings share
-- `fonts/` and `icons/`: bundled fonts and the hand icon
+- `src/page/`: the suggestion page (`demo.html`, `app.js`), which the extension opens and the website shows as a live demo
+- `src/extension/`: the manifest, redirect rules (`worker.js`), in-page watcher (`content.js`) and settings page
+- `src/shared/`: what both need
+  - `background.js` and `okhsl.js`: the gradient and colour maths
+  - `brand.css`: shared colour fallbacks, line weight, warning icon and pill buttons
+  - `cutout.js`: buttons whose label is cut out of the pill
+  - `settings.js`: the default sites and the URL and list logic
+  - `shared.js`: the shuffle, line splitting and Markdown-link parsing
+  - `suggestions.txt`, `fonts/` and `icons/`
+- `website/`: the marketing site, its privacy page, link-preview image and screenshots (`shots/`)
+- `test/`: unit tests; `scripts/`: the build, image renders and end-to-end test
 
-Changes to the page show on the website straight away. For the extension, rebuild, then reload it from `chrome://extensions` or `about:debugging`.
+Each build copies its folders' contents into one flat folder, so pages load every file by bare name (`brand.css`, `./shared.js`). After a change, rebuild; for the extension, then reload it from `chrome://extensions` or `about:debugging`.
 
-Run the unit tests with `node --test` (no dependencies).
+Run the unit tests with `npm test` (no dependencies).
 
 To check the extension end to end (the redirect, an always-allowed page, "Take me to …", and the in-page watcher), run it in [Chrome for Testing](https://developer.chrome.com/blog/chrome-for-testing/), which still loads unpacked extensions. The script builds into a temp dir and points the listed sites at a local server, so it leaves `dist/` alone and stays offline. It needs Node 22 or later and openssl:
 
 ```bash
 npx @puppeteer/browsers install chrome@stable --path ~/.cache/chrome-for-testing
-CHROME_FOR_TESTING="<the path it prints>" node scripts/e2e-extension.mjs
+CHROME_FOR_TESTING="<the path it prints>" npm run e2e
 ```
 
 ## Images
 
-All the images are rendered from the built extension in headless Chrome: the link-preview image (`og-image.jpg`), the cover (`.github/cover.jpg`), the store images (`store/`: two screenshots and the Chrome Web Store's small and marquee promo tiles, all in one colour) and the website's screenshots (`site/`, each in its own colour):
+All the images are rendered from the built extension in headless Chrome: the link-preview image (`website/og-image.jpg`), the cover (`.github/cover.jpg`), the store images (`store/`: two screenshots and the Chrome Web Store's small and marquee promo tiles, all in one colour) and the website's screenshots (`website/shots/`, each in its own colour):
 
 ```bash
-node scripts/capture-images.mjs
+npm run images
 ```
 
-It needs Node 22 or later, ffmpeg and Chrome. An image is only replaced when the new render looks different. It renders two images first (a page with its "Take me to" link, and the settings page); if neither changed, it keeps the rest as they are. `--all` renders every image regardless.
+It needs Node 22 or later, ffmpeg and Chrome. An image is only replaced when the new render looks different. It renders two images first (a page with its "Take me to" link, and the settings page); if neither changed, it keeps the rest as they are. `npm run images -- --all` renders every image regardless.
 
 A pre-commit hook in `.githooks/` runs it whenever a commit changes the page, settings or suggestions, and adds any images that changed. Turn it on once per clone:
 
@@ -95,4 +99,4 @@ git config core.hooksPath .githooks
 
 ## Licence
 
-MIT; see [LICENSE](LICENSE). The bundled fonts are under the SIL Open Font License (see [fonts/README.md](fonts/README.md)).
+MIT; see [LICENSE.md](LICENSE.md). The bundled fonts are under the SIL Open Font License (see [src/shared/fonts/README.md](src/shared/fonts/README.md)).

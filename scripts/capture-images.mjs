@@ -1,10 +1,10 @@
 // Renders the project's images from the Chrome build in headless Chrome:
-//   og-image.jpg                 link-preview image, one button without its label
+//   website/og-image.jpg         link-preview image, one button without its label
 //   .github/cover.jpg            README and website cover
 //   store/main.png, settings.png store screenshots
 //   store/tile.png               Chrome Web Store small promo tile
 //   store/marquee-tile.png       Chrome Web Store marquee promo tile
-//   site/*.jpg                   website screenshots, each in its own colour
+//   website/shots/*.jpg          website screenshots, each in its own colour
 // Each image fixes its suggestion, hue and gradient curve (hue 200 and one
 // curve unless it says otherwise). Each is drawn at 3x and scaled down for
 // crisp type. Chrome's software rendering can differ by a shade between runs,
@@ -43,12 +43,12 @@ const SITE_SHOTS = [
   ["Ride your bike", 235, 54],
   ["Practice a loving kindness meditation", 340, 3],
 ].map(([suggestion, hue, seed], i) => ({
-  out: `site/demo-${i + 1}.jpg`, page: "demo.html", width: 1280, height: 800, scale: 1, suggestion, hue, seed,
+  out: `website/shots/demo-${i + 1}.jpg`, page: "demo.html", width: 1280, height: 800, scale: 1, suggestion, hue, seed,
 }));
 const SUPERSAMPLE = 3;
 
 const IMAGES = [
-  { out: "og-image.jpg", page: "demo.html", width: 1200, height: 630, scale: 2, hideLabel: true },
+  { out: "website/og-image.jpg", page: "demo.html", width: 1200, height: 630, scale: 2, hideLabel: true },
   { out: ".github/cover.jpg", page: "demo.html", width: 1200, height: 800, scale: 2 },
   { out: "store/main.png", page: "demo.html", width: 1280, height: 800, scale: 1 },
   { out: "store/settings.png", page: "options.html", width: 1280, height: 800, scale: 1 },
@@ -61,11 +61,11 @@ const IMAGES = [
     tile: { text: SUGGESTION, textSize: 112, nameSize: 44, pad: 80, gap: 20 },
   },
   ...SITE_SHOTS,
-  { out: "site/settings.jpg", page: "options.html", width: 1280, height: 1210, scale: 1, hue: 285, seed: 63, probe: true },
+  { out: "website/shots/settings.jpg", page: "options.html", width: 1280, height: 1210, scale: 1, hue: 285, seed: 63, probe: true },
   // The page as the extension shows it after a redirect: "Take me to Reddit"
   // fades in five seconds after load.
   {
-    out: "site/take-me-to.jpg", page: "demo.html?from=https://www.reddit.com/", width: 1280, height: 800, scale: 1,
+    out: "website/shots/take-me-to.jpg", page: "demo.html?from=https://www.reddit.com/", width: 1280, height: 800, scale: 1,
     suggestion: "Look at a tree, from leaf to root", hue: 330, seed: 44, waitMs: 5800, probe: true,
   },
 ];
@@ -140,9 +140,7 @@ const TYPES = {
 
 function serve() {
   const server = createServer((req, res) => {
-    // The build flattens extension/ into the page folder; the website keeps it
-    // apart, and the pages here run as the website.
-    const path = normalize(decodeURIComponent(new URL(req.url, "http://x").pathname)).replace(/^\/+(extension\/)?/, "");
+    const path = normalize(decodeURIComponent(new URL(req.url, "http://x").pathname)).replace(/^\/+/, "");
     try {
       const body = readFileSync(join(SITE, path || "demo.html"));
       res.writeHead(200, { "content-type": TYPES[extname(path)] ?? "application/octet-stream" });
@@ -250,7 +248,7 @@ function psnr(a, b) {
   return !m ? 0 : m[1] === "inf" ? Infinity : Number(m[1]);
 }
 
-execFileSync("sh", [join(ROOT, "scripts/build-extension.sh")], { stdio: "ignore" });
+execFileSync("sh", [join(ROOT, "scripts/build.sh")], { stdio: "ignore" });
 const server = await serve();
 const origin = `http://127.0.0.1:${server.address().port}`;
 const chrome = await openChrome();

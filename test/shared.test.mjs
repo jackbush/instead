@@ -1,7 +1,7 @@
-// Tests for extension/shared.js. Run with `node --test`.
+// Tests for src/shared/shared.js. Run with `node --test`.
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { shuffle, parseLines, parseLinks, plainText } from "../extension/shared.js";
+import { shuffle, parseLines, parseLinks, plainText } from "../src/shared/shared.js";
 
 describe("shuffle", () => {
   test("returns the same array, a permutation of it", () => {

@@ -40,7 +40,7 @@ Install one with:
 function build(dir) {
   const skip = new Set([".git", "dist", "node_modules"]);
   cpSync(ROOT, dir, { recursive: true, filter: (src) => !skip.has(basename(src)) });
-  execFileSync("sh", [join(dir, "scripts/build-extension.sh")], { stdio: "ignore" });
+  execFileSync("sh", [join(dir, "scripts/build.sh")], { stdio: "ignore" });
   return join(dir, "dist/chrome");
 }
 
