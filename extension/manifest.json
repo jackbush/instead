@@ -35,7 +35,11 @@
     "*://*.facebook.com/*",
     "*://*.instagram.com/*",
     "*://*.reddit.com/*",
-    "*://*.tiktok.com/*"
+    "*://*.tiktok.com/*",
+    "*://*.youtube.com/*",
+    "*://*.x.com/*",
+    "*://*.twitter.com/*",
+    "*://*.linkedin.com/*"
   ],
   "optional_host_permissions": ["*://*/*"],
   "web_accessible_resources": [

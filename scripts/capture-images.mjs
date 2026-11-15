@@ -1,5 +1,5 @@
 // Renders the project's images from the Chrome build in headless Chrome:
-//   og-image.jpg                 link-preview image, button without its label
+//   og-image.jpg                 link-preview image, one button without its label
 //   .github/cover.jpg            README and website cover
 //   store/main.png, settings.png store screenshots
 //   store/tile.png               Chrome Web Store small promo tile
@@ -55,7 +55,7 @@ const IMAGES = [
     tile: { text: SUGGESTION, textSize: 112, nameSize: 44, pad: 80, gap: 20 },
   },
   ...SITE_SHOTS,
-  { out: "site/settings.jpg", page: "options.html", width: 1280, height: 800, scale: 1, hue: 95, seed: 21 },
+  { out: "site/settings.jpg", page: "options.html", width: 1280, height: 1210, scale: 1, hue: 285, seed: 63 },
   // The page as the extension shows it after a redirect: "Take me to Reddit"
   // fades in five seconds after load.
   {
@@ -110,6 +110,7 @@ const setUpMain = (image) => { const { hideLabel, tile, suggestion = SUGGESTION,
   document.body.prepend(name);
   await name.querySelector("img").decode();` : ""}
   suggestions.splice(0, suggestions.length, ${JSON.stringify(tile?.text ?? suggestion)});
+  deck = [];
   current = -1;
   show();
   const hue = document.querySelector('#params [name="h"]');
@@ -118,7 +119,7 @@ const setUpMain = (image) => { const { hideLabel, tile, suggestion = SUGGESTION,
   ${seededRandom(image)}
   Math.random(); // the hue's turn; the page's hue comes from the slider
   background.newArc();
-  ${hideLabel ? `document.querySelectorAll("#next mask text, #next mask path").forEach((e) => e.remove());` : ""}
+  ${hideLabel ? `document.querySelectorAll("#done mask text, #done mask path, #next").forEach((e) => e.remove());` : ""}
 })()`; };
 
 const SET_UP_SETTINGS = `(async () => {

@@ -8,8 +8,27 @@
 
 export const ext = globalThis.browser ?? globalThis.chrome;
 
-// manifest.json grants host access to each of these up front.
-export const DEFAULT_SITES = ["facebook.com", "instagram.com", "reddit.com", "tiktok.com"];
+// One-click groups of sites for the settings page. The default ones are on
+// the list from install, and manifest.json grants host access to their sites
+// up front; the others ask for access when they're ticked.
+export const PRESETS = [
+  { name: "Facebook", sites: ["facebook.com"], default: true },
+  { name: "Instagram", sites: ["instagram.com"], default: true },
+  { name: "Reddit", sites: ["reddit.com"], default: true },
+  { name: "TikTok", sites: ["tiktok.com"], default: true },
+  { name: "YouTube", sites: ["youtube.com"], default: true },
+  { name: "Twitter/X", sites: ["x.com", "twitter.com"], default: true },
+  { name: "LinkedIn", sites: ["linkedin.com"], default: true },
+  {
+    name: "News sites",
+    sites: [
+      "bbc.co.uk", "bbc.com", "cnn.com", "foxnews.com", "nytimes.com", "washingtonpost.com",
+      "theguardian.com", "dailymail.co.uk", "reuters.com", "apnews.com", "news.google.com", "news.yahoo.com",
+    ],
+  },
+];
+
+export const DEFAULT_SITES = PRESETS.filter((p) => p.default).flatMap((p) => p.sites);
 
 // Direct-message pages on sites people commonly redirect, in the same form as
 // exceptions. They only matter for sites on the list.

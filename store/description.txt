@@ -1,13 +1,13 @@
 Instead turns the sites you lose time to into a nudge towards something better.
 
-Open Facebook, Instagram, Reddit or TikTok and, in place of the feed, you get one big suggestion of something fun, free and fulfilling to do: go for a run, tell a friend why you love them, find a leaf and draw it. Not feeling it? Ask for another. Still want the site? After five seconds, a "Take me to …" button lets that tab through for 15 minutes.
+Open Facebook, Instagram, Reddit or TikTok and, in place of the feed, you get one big suggestion of something fun, free and fulfilling to do: go for a run, tell a friend why you love them, find a leaf and draw it. Up for it? "I'm on it" closes the tab. Not feeling it? Ask for another. Still want the site? After five seconds, a "Take me to …" link lets that tab through for 15 minutes.
 
 Blockers say no. Instead says what else you could do, and leaves the choice with you.
 
 Make it yours
-• Choose which sites to redirect. Subdomains are included.
+• Choose which sites to redirect: YouTube, Twitter/X and LinkedIn are on from the start too, news sites are one click away, or add your own. Subdomains are included.
 • Keep the useful parts: let direct messages through, or allow particular pages, such as a single subreddit.
-• Write your own suggestions, one per line, with links if you like.
+• Write your own suggestions, one per line.
 • Open settings from the toolbar button. Changes save as you go.
 
 Private by design

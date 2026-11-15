@@ -1,4 +1,4 @@
-// Runs on the redirected sites. Facebook, Instagram, Reddit and TikTok change URL
+// Runs on the redirected sites. Most of them, the defaults included, change URL
 // with history.pushState, which redirect rules never see, so this asks the
 // worker about each new URL and goes to Instead's page if it says so. It also
 // asks once at load, which catches pages DNR didn't redirect (restored from

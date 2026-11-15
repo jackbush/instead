@@ -30,8 +30,10 @@
     <div class="fields">
       <section>
         <h2 id="sites-h">Sites to redirect</h2>
-        <p id="sites-help" class="help">One site per line. Subdomains are included.</p>
-        <textarea id="sites" name="sites" rows="1" aria-labelledby="sites-h" aria-describedby="sites-help sites-note access" spellcheck="false" autocapitalize="off" autocomplete="off" disabled></textarea>
+        <p class="help">Subdomains are included.</p>
+        <div id="presets" class="presets" role="group" aria-labelledby="sites-h"></div>
+        <p id="sites-help" class="help">Other sites, one per line.</p>
+        <textarea id="sites" name="sites" rows="1" placeholder="example.com" aria-labelledby="sites-help" aria-describedby="sites-note access" spellcheck="false" autocapitalize="off" autocomplete="off" disabled></textarea>
         <ul id="sites-note" class="note" hidden></ul>
         <ul id="access" class="note" hidden></ul>
       </section>
@@ -50,7 +52,7 @@
 
       <section>
         <h2 id="suggestions-h">Suggestions</h2>
-        <p id="suggestions-help" class="help">One per line. Make a link with Markdown: <b>[Call a friend](https://…)</b>.</p>
+        <p id="suggestions-help" class="help">One per line.</p>
         <textarea id="suggestions" name="suggestions" rows="1" aria-labelledby="suggestions-h" aria-describedby="suggestions-help suggestions-note" spellcheck="true" disabled></textarea>
         <ul id="suggestions-note" class="note" hidden></ul>
       </section>

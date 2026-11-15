@@ -1,5 +1,5 @@
 /* Shared by every page: the colour fallbacks, the line weight, the warning
-   icon and the pill buttons. Pages add only their own layout to these. */
+   icon and the buttons. Pages add only their own layout to these. */
 
 :root {
   /* Until applyColours() sets the page's hue. */
@@ -36,6 +36,11 @@
 
 .btn.outline { box-shadow: inset 0 0 0 var(--line) var(--ink); }
 .btn.outline:hover:not(:disabled) { background: color-mix(in oklab, var(--ink) 12%, transparent); }
+
+/* Link buttons (tertiary): no pill, just the underlined label and its icon. */
+.btn.link { padding-inline: 0; }
+.btn.link span { text-decoration: underline; text-decoration-thickness: 0.08em; text-underline-offset: 0.2em; }
+.btn.link:hover:not(:disabled) span { text-decoration-thickness: 0.16em; }
 
 /* Cut-out buttons (cutout.js): the label and icon are masked out of an ink
    pill, so the ground shows through them. The real label and icon stay in

@@ -1,5 +1,5 @@
 import {
-  ext, DEFAULT_SITES, defaultSuggestions, getLists, saveLists,
+  ext, PRESETS, DEFAULT_SITES, defaultSuggestions, getLists, saveLists,
   normaliseSite, normaliseException, parseLines, sitesWithAccess, requestAccess,
 } from "./settings.js";
 
@@ -11,6 +11,28 @@ const SAVE_DELAY_MS = 400;
 const $ = (id) => document.getElementById(id);
 const resetButton = $("reset"), status = $("status"), access = $("access");
 const allowMessages = $("allow-messages");
+
+// A ticked preset puts its sites on the list; the textarea holds the rest.
+// Each preset gets a checkbox like the direct-messages one.
+const presets = PRESETS.map((preset) => {
+  const label = Object.assign(document.createElement("label"), { className: "check" });
+  const box = Object.assign(document.createElement("input"), { type: "checkbox", disabled: true });
+  const text = Object.assign(document.createElement("span"), { textContent: preset.name });
+  label.append(box, allowMessages.nextElementSibling.cloneNode(true), text);
+  $("presets").append(label);
+  return { preset, box };
+});
+
+// Ticks each preset whose sites are all on the list. Returns the sites
+// the ticked presets cover, which the textarea leaves out.
+function tickPresets(sites) {
+  const covered = new Set();
+  for (const { preset, box } of presets) {
+    box.checked = preset.sites.every((s) => sites.includes(s));
+    if (box.checked) preset.sites.forEach((s) => covered.add(s));
+  }
+  return covered;
+}
 
 // One entry per textarea. `normalise` gives the saved form of a line, or null
 // if it isn't valid.
@@ -86,8 +108,9 @@ function setFailure(message) {
 
 function render(lists) {
   saved = lists;
+  const covered = tickPresets(lists.sites);
   for (const [key, field] of Object.entries(fields)) {
-    field.el.value = lists[key].join("\n");
+    field.el.value = lists[key].filter((line) => key !== "sites" || !covered.has(line)).join("\n");
     setNotes(key, []);
   }
   allowMessages.checked = lists.allowMessages;
@@ -106,7 +129,7 @@ async function refreshAccess() {
   button.className = "btn outline";
   button.textContent = "Allow";
   const li = document.createElement("li");
-  li.append("Recent changes to this field need your permission to take effect. ", button);
+  li.append("Some of these sites need your permission before they can be redirected. ", button);
   access.replaceChildren(li);
 }
 
@@ -129,6 +152,8 @@ async function save() {
   saveTimer = 0;
   const result = Object.fromEntries(Object.keys(fields).map((k) => [k, tidy(k, fields[k].el.value)]));
   const lists = Object.fromEntries(Object.entries(result).map(([k, r]) => [k, r.valid]));
+  const ticked = presets.filter(({ box }) => box.checked).flatMap(({ preset }) => preset.sites);
+  lists.sites = [...new Set([...ticked, ...lists.sites])];
   lists.allowMessages = allowMessages.checked;
 
   const tooLong = Object.keys(fields).find((k) => bytes(k, lists[k]) > QUOTA_BYTES_PER_ITEM);
@@ -150,14 +175,17 @@ function fail(key) {
   setFailure("Not saved: a list is too long");
 }
 
-// Leaving a field (or the checkbox changing) saves at once and tidies what
-// was typed: lines are cleaned up, invalid ones flagged.
+// Leaving a field (or a checkbox changing) saves at once and tidies what
+// was typed: lines are cleaned up, invalid ones flagged. Typing all of a
+// preset's sites ticks it, and they leave the textarea.
 async function settle(key) {
   const result = await save();
   if (!result) return;
   if (key) {
     const { el } = fields[key];
-    if (el.value !== result[key].text) { el.value = result[key].text; fit(fields[key]); }
+    const covered = key === "sites" ? tickPresets(saved.sites) : new Set();
+    const text = result[key].text.split("\n").filter((line) => !covered.has(line)).join("\n");
+    if (el.value !== text) { el.value = text; fit(fields[key]); }
     setNotes(key, result[key].invalid.map((line) => [code(line), ` isn’t ${fields[key].what}, so it’s left out.`]));
   }
   await refreshAccess();
@@ -174,6 +202,17 @@ for (const [key, field] of Object.entries(fields)) {
   field.el.addEventListener("change", () => settle(key));
 }
 allowMessages.addEventListener("change", () => settle());
+
+// Ticking a preset asks for access to its sites at once (Firefox only shows
+// the prompt before the first await). Without it they're saved anyway, and
+// the access note offers to ask again.
+for (const { preset, box } of presets) {
+  box.addEventListener("change", async () => {
+    const missing = box.checked ? preset.sites.filter((s) => !granted.has(s)) : [];
+    if (missing.length) requestAccess(missing).catch(() => {});
+    await settle("sites");
+  });
+}
 
 resetButton.addEventListener("click", async () => {
   if (!confirm("Reset the sites, always-allowed pages and suggestions to their defaults? Your changes will be lost.")) return;
@@ -203,6 +242,7 @@ try {
   render(await getLists());
   for (const { el } of Object.values(fields)) el.disabled = false;
   allowMessages.disabled = false;
+  for (const { box } of presets) box.disabled = false;
   resetButton.disabled = false;
   document.fonts.ready.then(fitAll);
   await refreshAccess();

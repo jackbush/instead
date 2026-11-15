@@ -69,15 +69,16 @@
       text-underline-offset: 0.1em;
     }
 
-    /* "Take me to …" (outlined; buttons are in brand.css): beside the primary
-       button, or under it on phones, out of the layout so the primary button
-       stays put. */
-    #actions { position: relative; display: grid; }
+    /* "I'm on it" (cut-out), then "Suggest something else" (outlined;
+       buttons are in brand.css), then "Take me to …" as a link at the right
+       edge of the row, or under the buttons on phones, out of the layout so
+       the buttons stay put. */
+    #actions { position: relative; justify-self: stretch; display: flex; gap: 0.75rem; }
     #from {
       position: absolute;
-      top: 0;
-      left: 100%;
-      margin-left: 0.75rem;
+      top: 50%;
+      right: 0;
+      translate: 0 -50%;
       opacity: 0;
       transition: opacity 400ms ease-out;
     }
@@ -112,15 +113,16 @@
       /* Narrow screens wrap plainly: no glued last words (app.js reads
          --glue) and no rebalanced lines. */
       #suggestion { --glue: 0; text-wrap: wrap; }
-      #actions, #next { width: 100%; }
-      #from { top: 100%; left: 0; width: 100%; margin: 0.75rem 0 0; }
+      #actions { width: 100%; flex-direction: column; }
+      #from { top: 100%; right: auto; left: 0; translate: none; margin-top: 1rem; }
     }
   </style>
 </head>
 <body>
   <h1 id="suggestion" aria-live="polite"></h1>
   <div id="actions">
-    <button id="next" class="btn cut-out" type="button"><span>Suggest something else</span><svg class="icon" aria-hidden="true" viewBox="0 0 256 256"><path d="M240.49,175.51a12,12,0,0,1,0,17l-24,24a12,12,0,0,1-17-17L203,196h-2.09a76.17,76.17,0,0,1-61.85-31.83L97.38,105.78A52.1,52.1,0,0,0,55.06,84H32a12,12,0,0,1,0-24H55.06a76.17,76.17,0,0,1,61.85,31.83l41.71,58.39A52.1,52.1,0,0,0,200.94,172H203l-3.52-3.51a12,12,0,0,1,17-17Zm-95.62-72.62a12,12,0,0,0,16.93-1.13A52,52,0,0,1,200.94,84H203l-3.52,3.51a12,12,0,0,0,17,17l24-24a12,12,0,0,0,0-17l-24-24a12,12,0,0,0-17,17L203,60h-2.09a76,76,0,0,0-57.2,26A12,12,0,0,0,144.87,102.89Zm-33.74,50.22a12,12,0,0,0-16.93,1.13A52,52,0,0,1,55.06,172H32a12,12,0,0,0,0,24H55.06a76,76,0,0,0,57.2-26A12,12,0,0,0,111.13,153.11Z"/></svg></button>
+    <button id="done" class="btn cut-out" type="button"><span>I’m on it</span><svg class="icon" aria-hidden="true" viewBox="0 0 256 256"><path d="M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z"/></svg></button>
+    <button id="next" class="btn outline" type="button"><span>Suggest something else</span><svg class="icon" aria-hidden="true" viewBox="0 0 256 256"><path d="M240.49,175.51a12,12,0,0,1,0,17l-24,24a12,12,0,0,1-17-17L203,196h-2.09a76.17,76.17,0,0,1-61.85-31.83L97.38,105.78A52.1,52.1,0,0,0,55.06,84H32a12,12,0,0,1,0-24H55.06a76.17,76.17,0,0,1,61.85,31.83l41.71,58.39A52.1,52.1,0,0,0,200.94,172H203l-3.52-3.51a12,12,0,0,1,17-17Zm-95.62-72.62a12,12,0,0,0,16.93-1.13A52,52,0,0,1,200.94,84H203l-3.52,3.51a12,12,0,0,0,17,17l24-24a12,12,0,0,0,0-17l-24-24a12,12,0,0,0-17,17L203,60h-2.09a76,76,0,0,0-57.2,26A12,12,0,0,0,144.87,102.89Zm-33.74,50.22a12,12,0,0,0-16.93,1.13A52,52,0,0,1,55.06,172H32a12,12,0,0,0,0,24H55.06a76,76,0,0,0,57.2-26A12,12,0,0,0,111.13,153.11Z"/></svg></button>
   </div>
   <canvas id="bg" aria-hidden="true"></canvas>
   <aside id="params" hidden>

@@ -1,8 +1,10 @@
 const suggestion = document.getElementById("suggestion");
 const actions = document.getElementById("actions");
+const done = document.getElementById("done");
 const next = document.getElementById("next");
 let suggestions = [];
-let current = -1;
+let deck = [];     // indexes into suggestions still to show this round
+let current = -1;  // index of the one showing
 
 // In the browser extension, `ext` is its API object; on the website it is undefined.
 const ext = [globalThis.browser, globalThis.chrome].find((api) => api?.runtime?.id);
@@ -34,12 +36,24 @@ function render(line, glue) {
   return nodes;
 }
 
+// Deals the suggestions in a shuffled order, so each one shows before any
+// repeats. Each round is shuffled anew and doesn't start with the last one shown.
 function show() {
-  let i;
-  do i = Math.floor(Math.random() * suggestions.length);
-  while (suggestions.length > 1 && i === current);
-  current = i;
+  if (!deck.length) {
+    deck = shuffle(suggestions.map((_, i) => i));
+    if (deck.length > 1 && deck[0] === current) deck.push(deck.shift());
+  }
+  current = deck.shift();
   paint();
+}
+
+// Fisher–Yates, in place.
+function shuffle(list) {
+  for (let i = list.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [list[i], list[j]] = [list[j], list[i]];
+  }
+  return list;
 }
 
 // Phones turn the glue off (demo.html sets --glue to 0): two long words
@@ -52,7 +66,14 @@ function paint() {
 }
 addEventListener("resize", () => { if (current >= 0 && glues() !== glued) paint(); });
 
-cutOut(next);
+cutOut(done);
+
+// "I'm on it" closes the tab. Pages can only close tabs a script opened, so the
+// extension closes it through its API; the website goes to its home page.
+done.addEventListener("click", async () => {
+  if (ext) ext.tabs.remove((await ext.tabs.getCurrent()).id);
+  else location.href = "./";
+});
 
 // Every suggestion (page load or button) gets a new primary hue from the
 // hue slider's range. A button press also moves at least 30° round the
@@ -75,10 +96,14 @@ next.addEventListener("click", () => {
 });
 
 // Names whose capitals aren't just the first letter.
-const BRAND_NAMES = { tiktok: "TikTok", youtube: "YouTube", linkedin: "LinkedIn" };
+const BRAND_NAMES = {
+  tiktok: "TikTok", youtube: "YouTube", linkedin: "LinkedIn", bbc: "BBC", cnn: "CNN",
+  foxnews: "Fox News", nytimes: "The New York Times", washingtonpost: "The Washington Post",
+  theguardian: "The Guardian", dailymail: "the Daily Mail", apnews: "AP News",
+};
 
 // The extension adds ?from=<the page it redirected>. Five seconds later a
-// second button offers to go there after all.
+// link offers to go there after all.
 function offerOriginal(from) {
   const host = new URL(from).hostname.replace(/\.$/, "").split(".");
   // Registrable domain's first label: www.reddit.com -> reddit, news.bbc.co.uk -> bbc.
@@ -86,7 +111,7 @@ function offerOriginal(from) {
   const name = host.at(-second) ?? host[0];
   const button = document.createElement("button");
   button.id = "from";
-  button.className = "btn outline";
+  button.className = "btn link";
   button.type = "button";
   button.innerHTML = '<span></span><svg class="icon" aria-hidden="true" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></svg>';
   button.firstChild.textContent = `Take me to ${BRAND_NAMES[name] ?? name[0].toUpperCase() + name.slice(1)}`;

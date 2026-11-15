@@ -12,7 +12,7 @@ People who reflexively open social feeds (Facebook, Instagram, Reddit, TikTok) o
 
 ## Product Purpose
 
-Instead is a Chrome and Firefox extension. Opening a site on the user's list lands them on a page with one large suggestion of something fun, free and fulfilling to do instead. Another suggestion is a click away, and after five seconds "Take me to …" lets that tab through for 15 minutes. Success is the user choosing the suggestion more often than the feed.
+Instead is a Chrome and Firefox extension. Opening a site on the user's list lands them on a page with one large suggestion of something fun, free and fulfilling to do instead. "I'm on it" closes the tab, another suggestion is a click away, and after five seconds a "Take me to …" link lets that tab through for 15 minutes. Success is the user choosing the suggestion more often than the feed.
 
 ## Positioning
 
@@ -21,7 +21,7 @@ Blockers say no. Instead suggests something better and leaves the choice with yo
 ## Operating Context
 
 - The suggestion page (`demo.html`) is shared by the extension and the website, where it runs as a live demo.
-- Settings open from the toolbar button: sites to redirect, always-allowed pages (with a direct-messages checkbox), and the user's own suggestions, saved as you go.
+- Settings open from the toolbar button: sites to redirect (one-click presets plus any others), always-allowed pages (with a direct-messages checkbox), and the user's own suggestions, saved as you go.
 - The website is a static GitHub Pages site at jackbush.github.io/instead/.
 
 ## Capabilities and Constraints

@@ -1,4 +1,4 @@
-![“Draw something that makes you feel joy” in large serif type on a soft lilac-to-cyan gradient, above a “Suggest something else” button.](.github/cover.jpg)
+![“Draw something that makes you feel joy” in large serif type on a soft lilac-to-cyan gradient, above “I’m on it” and “Suggest something else” buttons.](.github/cover.jpg)
 
 # Instead
 
@@ -10,13 +10,14 @@ Instead has no server and collects nothing. Its settings live in your browser, w
 
 ## What the extension does
 
-- **Redirects** the sites on your list, before the browser sends anything to them. Facebook, Instagram, Reddit and TikTok are on the list by default, subdomains included.
-- **Offers a way through.** After five seconds a "Take me to …" button appears. It lets that tab onto the site for 15 minutes, or until the tab closes.
+- **Redirects** the sites on your list, before the browser sends anything to them. Facebook, Instagram, Reddit, TikTok, YouTube, Twitter/X and LinkedIn are on the list by default, subdomains included.
+- **Suggests something else to do.** "I'm on it" closes the tab; "Suggest something else" deals the next suggestion from a shuffled deck, so every one shows before any repeats.
+- **Offers a way through.** After five seconds a "Take me to …" link appears. It lets that tab onto the site for 15 minutes, or until the tab closes.
 - **Watches in-page navigation.** These sites change pages without reloading, so a small script on them catches moves from an allowed page to a redirected one.
 
 The toolbar button opens the settings, which save as you go:
 
-- **Sites to redirect**, one per line.
+- **Sites to redirect:** one-click checkboxes for Facebook, Instagram, Reddit, TikTok, YouTube, Twitter/X and LinkedIn (on by default), and a group of news sites, then any other sites, one per line. Ticking a site that isn't on by default asks the browser for access to it.
 - **Always allowed:** a checkbox for direct messages on redirected sites, such as facebook.com/messages, and a list of other pages, as the start of an address, such as `reddit.com/r/name`.
 - **Suggestions**, as below.
 

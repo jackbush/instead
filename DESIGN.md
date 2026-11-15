@@ -8,6 +8,7 @@ colors:
   secondary: "#ffd7dc"
   ink: "#050b00"
   field: "#ffffff"
+  paper: "#f1f2f3"
 typography:
   display:
     fontFamily: "Gloock, Georgia, serif"
@@ -85,6 +86,9 @@ components:
     typography: "{typography.label}"
     rounded: "{rounded.pill}"
     padding: "0.7em 1.5em"
+  button-link:
+    textColor: "{colors.ink}"
+    typography: "{typography.label}"
   text-field:
     backgroundColor: "{colors.field}"
     textColor: "{colors.ink}"
@@ -113,7 +117,7 @@ components:
 
 Instead speaks in one large sentence on a soft gradient whose colour you have never quite seen before. Every load picks a new primary hue, every new suggestion turns it at least 30° round the wheel, and on the marketing site the hue turns a full circle between the top of the page and the bottom. Nothing in the palette is fixed: the ground, the second gradient stop and the ink are all derived from that one hue, so the system is a set of relationships rather than a set of swatches.
 
-Against that moving ground the type and controls stay deliberately few. A tall, high-contrast serif (Gloock) carries anything meant to be read from across the room; a warm grotesque (Hanken Grotesk) carries everything else. Controls are ink pills. The primary action is a pill with its label and icon cut out, so the gradient shows through the letters; the secondary is the same pill drawn as a 1.5px ink outline. Density is low: one idea per viewport, generous page padding, no cards, no chrome.
+Against that moving ground the type and controls stay deliberately few. A tall, high-contrast serif (Gloock) carries anything meant to be read from across the room; a warm grotesque (Hanken Grotesk) carries everything else. Controls are ink pills. The primary action is a pill with its label and icon cut out, so the gradient shows through the letters; the secondary is the same pill drawn as a 1.5px ink outline; a rare tertiary action is an underlined link. Density is low: one idea per viewport, generous page padding, no cards, no chrome.
 
 The same system runs on the marketing site, the suggestion page the extension opens, settings and the privacy page. They differ only in density (settings tightens body to 16px and adds white fields), never in palette, type or form.
 
@@ -122,7 +126,7 @@ The same system runs on the marketing site, the suggestion page the extension op
 - Full-viewport WebGL arc gradient in OKLab, dithered, behind everything.
 - Near-black ink tinted from the hue, used for all text, outlines and filled controls.
 - Gloock display at jumbo scale, line-height 1.04, -0.02em tracking.
-- Cut-out ink pills for the primary action; outlined pills for the rest.
+- Cut-out ink pills for the primary action; outlined pills for the rest; underlined links for a tertiary way out.
 - Flat: depth only from soft ink-tinted shadows on screenshots and the save status.
 
 ## Colors
@@ -137,16 +141,17 @@ A soft, low-chroma two-stop gradient and a near-black ink, all spun from one hue
 
 ### Neutral
 - **Ink** (`ink`; hue h − 120°, saturation 100, lightness 5, capped): all text, link underlines, outlines, filled pills, focus rings, field borders. It is also the page's own background colour behind the canvas, and is written to `theme-color`, so browser bars match the text.
-- **Field White** (`field`): the fill of text fields and unchecked checkboxes on settings. The one colour not derived from the hue, so editable areas read as paper on any ground.
+- **Field White** (`field`): the fill of text fields and unchecked checkboxes on settings. Not derived from the hue, so editable areas read as paper on any ground.
+- **Paper** (`paper`): the marketing home page only. Below its opening the gradient fades to this cool off-white, so the screenshots and product colours above it stand out. Once the opening scrolls away, the root background and `theme-color` switch to it as well. It is not derived from the hue.
 
 Translucent ink tints (via `color-mix` in OKLab) do the remaining work: 10–12% for outline-button hover, 14% for the hairline outline on screenshots, 25% for the footer rule, 45% for placeholders, 55–60% for shadows.
 
 ### Named Rules
-**The One Hue Rule.** Every colour except Field White is computed from the primary hue by fixed offsets (secondary +120°, ink −120° at lightness 5). Never hard-code a brand hex; a surface that wants colour reads `--primary` and `--ink`.
+**The One Hue Rule.** Every colour except Field White and Paper is computed from the primary hue by fixed offsets (secondary +120°, ink −120° at lightness 5). Never hard-code a brand hex; a surface that wants colour reads `--primary` and `--ink`.
 
 **The Chroma Cap Rule.** OKLab chroma is capped at 0.13 for every derived colour, so a yellow-green and a blue land at the same softness. Raising it makes some hues loud and others not.
 
-**The Ink Behind Rule.** The page background is ink and the canvas sits fixed above it with a primary fallback. Overscroll and browser bars show ink, never white.
+**The Ink Behind Rule.** The page background is ink and the canvas sits fixed above it with a primary fallback. Overscroll and browser bars show ink, never white. The home page is the exception: below its opening they follow Paper.
 
 ## Typography
 
@@ -180,7 +185,7 @@ Links inherit ink, underline at 0.08em thickness with 0.2em offset (0.06em / 0.1
 
 One column, left-aligned, held off the edges by a single fluid page padding (clamp(1.5rem, 6vw, 6rem)). Text measures are capped in `ch` for display (14–18ch) and `rem` for body (34–44rem). Pages never centre their content.
 
-- **Suggestion page:** a two-row grid; the suggestion sits at the bottom of the first row and grows upward, the button row stays fixed 20dvh from the bottom whatever the text length. "Take me to …" appears beside the primary button out of flow (below it, full-width, under 600px) so the primary never moves.
+- **Suggestion page:** a two-row grid; the suggestion sits at the bottom of the first row and grows upward, the button row stays fixed 20dvh from the bottom whatever the text length. "I'm on it" (cut-out) and "Suggest something else" (outline) sit side by side, stacked full-width under 600px. The "Take me to …" link appears out of flow at the right edge of the row (below them under 600px) so the buttons never move.
 - **Marketing:** a full-viewport hero aligned to the bottom (18svh bottom padding), then sections separated by clamp(5rem, 12vw, 10rem). Two-column text/image splits collapse to one column at 720px, where the install pills go full width and the nav hides. Screenshots run in a horizontal scroll-snap strip that bleeds to the viewport edges.
 - **Settings and privacy:** a single text column (44rem / 38rem), sections spaced clamp(2.25rem, 5vw, 3.25rem).
 
@@ -204,14 +209,15 @@ The logo mark is the Phosphor hand-palm (fill) in black with a white outline; it
 ## Components
 
 ### Buttons
-Two pills of the same size: one cut out, one drawn. Both are defined once, in `brand.css`, which every page loads.
+Two pills of the same size, one cut out and one drawn, and a link. All are defined once, in `brand.css`, which every page loads.
 - **Shape:** full pill (999px), at least 2.75rem tall, 0.6em × 1.4em padding, label then a Phosphor bold icon at 1.1em, 0.4em apart.
-- **Cut-out (primary):** an ink pill with the label and icon masked out, so the live gradient shows through the letters (`cutout.js` draws an SVG mask over the real, invisible label, which keeps the accessible name and size). One per group: the visitor's own browser's install link, "Suggest something else", "Preview".
-- **Outline (secondary):** transparent, 1.5px inset ink ring, ink label. "Take me to …", the other browser, "Reset to defaults".
+- **Cut-out (primary):** an ink pill with the label and icon masked out, so the live gradient shows through the letters (`cutout.js` draws an SVG mask over the real, invisible label, which keeps the accessible name and size). One per group: the visitor's own browser's install link, "I'm on it", "Preview".
+- **Outline (secondary):** transparent, 1.5px inset ink ring, ink label. "Suggest something else", the other browser, "Reset to defaults".
+- **Link (tertiary):** no pill or padding, the label underlined at 0.08em with 0.2em offset, then its icon. Hover thickens the underline to 0.16em. "Take me to …".
 - **Hover:** the outline fills with a 12% ink tint; the cut-out darkens its pill (`brightness(0.7)`).
 - **Focus:** 2px ink outline, 4px offset.
 - **Disabled:** 40% opacity.
-- **Motion:** "Take me to …" fades in over 400ms ease-out five seconds after load; no transition under reduced motion.
+- **Motion:** the "Take me to …" link fades in over 400ms ease-out five seconds after load; no transition under reduced motion.
 
 ### Inputs / Fields
 - **Style:** Field White fill, 1.5px solid ink border, 1.1rem radius, 0.85rem × 1.1rem padding, body type at 1.6 leading, auto-growing with no resize handle.
@@ -238,7 +244,7 @@ The marketing hero swaps its "You were about to open …" line and its suggestio
 - **Do** keep chroma at or under 0.13 for any new derived colour.
 - **Do** set the page background to ink and give the canvas a primary fallback.
 - **Do** set display text in Gloock 400 at line-height 1.04 and −0.02em tracking.
-- **Do** make exactly one action per group the cut-out pill; the others are 1.5px outlined pills of the same size.
+- **Do** make exactly one action per group the cut-out pill; the others are 1.5px outlined pills of the same size, or a tertiary underlined link.
 - **Do** draw pill outlines as an inset box-shadow so outlined and cut-out pills match exactly.
 - **Do** use Phosphor bold icons, inlined as SVG, coloured with `currentColor`.
 - **Do** use pure white for editable fields.
