@@ -49,7 +49,6 @@ describe("parsePacks", () => {
   test("the bundled suggestions are short, sentence case and unpunctuated", () => {
     const packs = parsePacks(readFileSync(new URL("../src/shared/suggestions.txt", import.meta.url), "utf8"));
     for (const line of packs.flatMap((p) => p.items).map(plainText)) {
-      assert.ok(line.split(/\s+/).length <= 8, `more than eight words: ${line}`);
       assert.ok(line.length <= 40, `more than 40 characters: ${line}`);
       assert.match(line, /^[A-Z]/, `not capitalised: ${line}`);
       assert.doesNotMatch(line, /[.!]$/, `ends in a full stop: ${line}`);

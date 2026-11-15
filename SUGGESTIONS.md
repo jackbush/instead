@@ -7,7 +7,7 @@ How to write a line for `src/shared/suggestions.txt`. Each suggestion is the onl
 3. **Free.** Nothing to buy.
 4. **Specific and finite.** It has an end you'll recognise: one song, one chapter, round the block.
 5. **Off the screen.** If it needs a device, it needs a reason: a call, a song, a question you want answered.
-6. **Short.** Eight words and 40 characters at most, counting a link as its text. The type is set at up to 9rem in a 14-character measure.
+6. **Short.** 40 characters at most, counting a link as its text. The type is set at up to 9rem in a 14-character measure.
 7. **An invitation, not a correction.** No "stop", no "should", no productivity guilt.
 8. **Sentence case, no full stop, British spelling.** Practise, colour, favourite.
 9. **Short and direct.** Say the thing. No "why not", no "take a moment to", no "embrace", "journey", "mindful moment" or "nourish".
