@@ -30,23 +30,11 @@ function sentence(line) {
 const hero = document.getElementById("hero-title");
 const was = document.getElementById("was");
 
-const pause = document.querySelector(".pause");
-const fading = new Set(); // swaps between fading out and back in
-
 // Swaps an element's text with a short blur and fade.
 function swap(element, update) {
   if (reducedMotion) return update();
   element.classList.add("out");
-  const timer = setTimeout(() => { fading.delete(timer); update(); element.classList.remove("out"); }, 280);
-  fading.add(timer);
-}
-
-// Cancels a swap that is mid-fade; the old text comes back at full strength.
-function settle() {
-  for (const timer of fading) clearTimeout(timer);
-  fading.clear();
-  hero.classList.remove("out");
-  was.classList.remove("out");
+  setTimeout(() => { update(); element.classList.remove("out"); }, 280);
 }
 
 function showSite(i) {
@@ -57,28 +45,14 @@ Promise.all([shared, fetch("suggestions.txt").then((r) => r.text())]).then(([{ p
   const lines = parseLines(text).map(plainText);
   let i = Math.floor(Math.random() * lines.length);
   hero.textContent = sentence(lines[i]);
-  if (reducedMotion) return; // one sentence, nothing to pause
+  if (reducedMotion) return; // one sentence that stays
   let site = 0;
-  let timer = 0;
-  const advance = () => {
+  setInterval(() => {
     if (document.hidden) return;
     i = (i + 1) % lines.length;
     swap(hero, () => { hero.textContent = sentence(lines[i]); });
     showSite(++site);
-  };
-  const run = () => { timer = setInterval(advance, CYCLE_MS); };
-  run();
-  pause.hidden = false;
-  pause.addEventListener("click", () => {
-    const resuming = !timer;
-    if (resuming) run();
-    else { clearInterval(timer); timer = 0; settle(); }
-    // The label carries the state, so there is no aria-pressed to contradict it.
-    pause.querySelector("span").textContent = resuming ? "Pause suggestions" : "Play suggestions";
-    // SVG elements have no `hidden` property, only the attribute.
-    pause.querySelector('[data-icon="pause"]').toggleAttribute("hidden", !resuming);
-    pause.querySelector('[data-icon="play"]').toggleAttribute("hidden", resuming);
-  });
+  }, CYCLE_MS);
 });
 
 // Screenshots in a different order each visit.
@@ -97,15 +71,27 @@ function mixHex(a, b, t) {
 // The hue starts somewhere random and turns a full circle between the top of
 // the page and the start of the paper. The browser's bars follow whatever is
 // on screen at each edge: the gradient there, with as much of the paper's
-// fade as covers it. Safari tints its bars from the fixed blocks behind the
+// fade as covers it. Safari tints its bars from the edge strips over the
 // canvas and its overscroll from the root background; other browsers read
 // theme-color.
 const background = paintBackground(document.getElementById("bg"));
 const ground = document.getElementById("ground");
 const themeColor = document.querySelector('meta[name="theme-color"]');
-const [topEdge, bottomEdge] = ["top", "bottom"].map((e) => document.querySelector(`[data-edge="${e}"]`));
+let [topEdge, bottomEdge] = ["top", "bottom"].map((e) => document.querySelector(`[data-edge="${e}"]`));
 const startHue = params.h;
 let frame = 0;
+
+// Safari reads a strip's colour once, when the strip is added, so a new
+// colour needs a new strip. Returns the strip now in the page.
+function tint(strip, colour) {
+  if (strip.dataset.colour === colour) return strip;
+  const fresh = strip.cloneNode();
+  fresh.dataset.colour = colour;
+  fresh.style.backgroundColor = colour;
+  strip.replaceWith(fresh);
+  return fresh;
+}
+
 function turn() {
   frame = 0;
   params.h = Math.round(startHue + Math.min(1, scrollY / ground.offsetTop) * 360) % 360;
@@ -118,8 +104,8 @@ function turn() {
   const groundTop = ground.getBoundingClientRect().top;
   const at = (lab, y) => mixHex(oklabHex(lab), PAPER, Math.min(1, Math.max(0, (y - groundTop) / fade)));
   const top = at(edges.top, 0);
-  topEdge.style.backgroundColor = top;
-  bottomEdge.style.backgroundColor = at(edges.bottom, innerHeight);
+  topEdge = tint(topEdge, top);
+  bottomEdge = tint(bottomEdge, at(edges.bottom, innerHeight));
   document.documentElement.style.backgroundColor = top;
   themeColor.content = top;
 }
