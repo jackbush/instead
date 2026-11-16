@@ -18,7 +18,7 @@ for (const group of document.querySelectorAll("[data-install]")) {
   cutOut(first);
 }
 
-const shared = import("./shared.js"); // shuffle, parsePacks, plainText
+const shared = import("./shared.js"); // shuffle, parsePacks, suggestionsFor, plainText
 
 // "Instead, find a leaf and draw it." from a suggestion in suggestions.txt with its
 // links as plain text: the first letter drops to lower case.
@@ -41,8 +41,9 @@ function showSite(i) {
   swap(was, () => { was.querySelector("b").textContent = SITES[i % SITES.length]; });
 }
 
-Promise.all([shared, fetch("suggestions.txt").then((r) => r.text())]).then(([{ parsePacks, shuffle, plainText }, text]) => {
-  const lines = shuffle(parsePacks(text).flatMap((p) => p.items.map(plainText)));
+// The hero leaves out the Exercise pack.
+Promise.all([shared, fetch("suggestions.txt").then((r) => r.text())]).then(([{ parsePacks, suggestionsFor, shuffle, plainText }, text]) => {
+  const lines = shuffle(suggestionsFor(parsePacks(text), { packsOff: ["Exercise"] }).map(plainText));
   // Shuffled, so the sentences don't run through one pack at a time.
   let i = 0;
   hero.textContent = sentence(lines[i]);

@@ -61,7 +61,7 @@ const IMAGES = [
     tile: { text: SUGGESTION, textSize: 112, nameSize: 44, pad: 80, gap: 20 },
   },
   ...SITE_SHOTS,
-  { out: "website/shots/settings.jpg", page: "options.html", width: 1280, height: 800, scale: 1, hue: 150, seed: 63, probe: true },
+  { out: "website/shots/settings.jpg", page: "options.html", width: 960, height: 960, scale: 1, hue: 150, seed: 63, probe: true },
   // The page as the extension shows it after a redirect: "Take me to Reddit"
   // fades in five seconds after load.
   {

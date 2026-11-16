@@ -84,7 +84,8 @@
       padding: clamp(1.25rem, 3vw, 2rem) var(--pad);
     }
     .brand { display: inline-flex; align-items: center; gap: 0.15em; font: 400 1.75rem/1 Gloock, Georgia, serif; text-decoration: none; }
-    .brand img { height: 0.95em; }
+    .brand { --hand-fill: var(--ink); }
+    .brand svg { height: 0.95em; width: 0.95em; }
     .top nav { display: flex; gap: 1.5rem; font-weight: 600; }
     .top nav a { text-decoration: none; }
     .top nav a:hover { text-decoration: underline; }
@@ -98,13 +99,15 @@
       padding: 7rem var(--pad) 16svh;
       margin-bottom: 0;
     }
-    .was { margin: 0 0 1rem; font-size: clamp(1.125rem, 2vw, 1.5rem); }
+    .hero { --was: clamp(1.125rem, 2vw, 1.5rem); }
+    .was { margin: 0 0 1rem; font-size: var(--was); line-height: 1.6; }
     .was b { font-weight: 800; }
     /* On screens narrower than 375px the size shrinks with the text column,
        keeping a 375px phone's proportions, so the longest suggestion still
        fits the four lines phones keep for it. A word wider than the screen
        breaks rather than scrolling the page sideways. */
-    .hero h1 { font-size: clamp(min(3rem, (100vw - 2 * var(--pad)) * 0.146), 8.4vw, 8.5rem); max-width: 15ch; overflow-wrap: anywhere; }
+    .hero { --title: clamp(min(3rem, (100vw - 2 * var(--pad)) * 0.146), 8.4vw, 8.5rem); }
+    .hero h1 { font-size: var(--title); max-width: 15ch; overflow-wrap: anywhere; }
     .what { margin: 0; max-width: 34rem; font-size: clamp(1.125rem, 1.8vw, 1.375rem); text-wrap: pretty; }
     .swap { transition: opacity 280ms ease-out, filter 280ms ease-out; }
     .swap.out { opacity: 0; filter: blur(6px); }
@@ -179,6 +182,7 @@
     .shots::-webkit-scrollbar { display: none; }
     .shots figure { margin: 0; scroll-snap-align: start; scroll-margin-left: var(--pad); }
 
+    .yours .shot { aspect-ratio: 1; }
     .yours ul { margin: 0; padding-left: 1.2rem; display: grid; gap: 0.5rem; }
 
     /* Questions */
@@ -229,19 +233,29 @@
       font-size: 0.95rem;
     }
     footer .brand { font-size: 1.25rem; margin-right: auto; }
-    footer .brand img { filter: invert(1); }
+    footer .brand { --hand-fill: var(--paper); --hand-gap: var(--ink); }
     footer :focus-visible { outline-color: var(--paper); }
     footer ::selection { background: var(--paper); color: var(--ink); }
 
     @media (max-width: 720px) {
       .top nav { display: none; }
-      /* Room for the longest suggestion, set to the bottom, so the lines
-         below stay put as the sentence changes length. */
-      .hero h1 { min-height: 4lh; display: grid; align-content: end; }
+      /* Room for "You were about to open" and the longest suggestion, set to
+         the bottom, so the lines below stay put as the sentence changes
+         length and the line above moves with it. 4lh is four of the
+         headline's lines, as the box takes its size. */
+      .headline {
+        display: grid;
+        align-content: end;
+        font-size: var(--title);
+        line-height: 1.04;
+        min-height: calc(4lh + var(--was) * 1.6 + 1rem);
+      }
       .split { grid-template-columns: 1fr; }
       .split.flip > :first-child { order: 0; }
       .install .btn { flex: 1 1 100%; }
       .steps { grid-template-columns: 1fr; }
+      .outro { gap: var(--gap); }
+      footer .licence { display: none; }
     }
   </style>
 </head>
@@ -251,7 +265,7 @@
   <div class="edge" data-edge="bottom"></div>
 
   <header class="top">
-    <a class="brand" href="#top" aria-label="Instead, top of the page"><img src="icons/favicon.svg" alt="">Instead</a>
+    <a class="brand" href="#top" aria-label="Instead, top of the page"><svg viewBox="0 0 256 256" aria-hidden="true"><use href="icons/favicon.svg#hand"/></svg>Instead</a>
     <nav aria-label="Page">
       <a href="#how">How it works</a>
       <a href="#questions">Questions</a>
@@ -261,7 +275,7 @@
 
   <main id="top">
     <section class="hero" aria-label="Instead, a free browser extension">
-      <div>
+      <div class="headline">
         <p class="was swap" id="was">You were about to open <b>reddit.com</b>.</p>
         <h1 class="display swap" id="hero-title">Instead, find a leaf and draw&nbsp;it.</h1>
       </div>
@@ -302,7 +316,7 @@
             <li>Pick the kinds of suggestion you like, and add your own.</li>
           </ul>
         </div>
-        <img class="shot" src="shots/settings.jpg" width="1280" height="800" loading="lazy" alt="Instead's settings page: the sites to redirect and the pages always allowed.">
+        <img class="shot" src="shots/settings.jpg" width="960" height="960" loading="lazy" alt="Instead's settings page: the sites to redirect and the pages always allowed.">
       </section>
 
       <section aria-labelledby="sky-title">
@@ -342,10 +356,10 @@
   </main>
 
   <footer>
-    <a class="brand" href="#top"><img src="icons/favicon.svg" alt="">Instead</a>
+    <a class="brand" href="#top"><svg viewBox="0 0 256 256" aria-hidden="true"><use href="icons/favicon.svg#hand"/></svg>Instead</a>
     <a href="privacy.html">Privacy</a>
     <a href="https://github.com/jackbush/instead">Source code</a>
-    <span>MIT licence</span>
+    <span class="licence">MIT licence</span>
   </footer>
 
   <script src="site.js"></script>
