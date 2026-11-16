@@ -117,7 +117,7 @@ components:
 
 Instead speaks in one large sentence on a soft gradient whose colour you have never quite seen before. Every load picks a new primary hue, every new suggestion turns it at least 30° round the wheel, and on the marketing site the hue turns a full circle between the top of the page and the bottom. Nothing in the palette is fixed: the ground, the second gradient stop and the ink are all derived from that one hue, so the system is a set of relationships rather than a set of swatches.
 
-Against that moving ground the type and controls stay deliberately few. A tall, high-contrast serif (Gloock) carries anything meant to be read from across the room; a warm grotesque (Hanken Grotesk) carries everything else. Controls are ink pills. The primary action is a pill with its label and icon cut out, so the gradient shows through the letters; the secondary is the same pill drawn as a 1.5px ink outline; a rare tertiary action is an underlined link. Density is low: one idea per viewport, generous page padding, no cards, no chrome.
+Against that moving ground the type and controls stay deliberately few. A tall, high-contrast serif (Gloock) carries anything meant to be read from across the room; a warm grotesque (Hanken Grotesk) carries everything else. Controls are ink pills. The primary action is a pill with its label and icon cut out, so the gradient shows through the letters; the secondary is the same pill drawn as a 1.5px ink outline; a rare tertiary action is a bare text link. Density is low: one idea per viewport, generous page padding, no cards, no chrome.
 
 The same system runs on the marketing site, the suggestion page the extension opens, settings and the privacy page. They differ only in density (settings tightens body to 16px and adds white fields), never in palette, type or form.
 
@@ -126,7 +126,7 @@ The same system runs on the marketing site, the suggestion page the extension op
 - Full-viewport WebGL arc gradient in OKLab, dithered, behind everything.
 - Near-black ink tinted from the hue, used for all text, outlines and filled controls.
 - Gloock display at jumbo scale, line-height 1.04, -0.02em tracking.
-- Cut-out ink pills for the primary action; outlined pills for the rest; underlined links for a tertiary way out.
+- Cut-out ink pills for the primary action; outlined pills for the rest; a bare text link for a tertiary way out.
 - Flat: depth only from soft ink-tinted shadows on screenshots and the save status.
 
 ## Colors
@@ -213,7 +213,7 @@ Two pills of the same size, one cut out and one drawn, and a link. All are defin
 - **Shape:** full pill (999px), at least 2.75rem tall, 0.6em × 1.4em padding, label then a Phosphor bold icon at 1.1em, 0.4em apart.
 - **Cut-out (primary):** an ink pill with the label and icon masked out, so the live gradient shows through the letters (`cutout.js` draws an SVG mask over the real, invisible label, which keeps the accessible name and size). One per group: the visitor's own browser's install link, "I'm on it", "Preview".
 - **Outline (secondary):** transparent, 1.5px inset ink ring, ink label. "Suggest something else", the other browser, "Reset to defaults".
-- **Link (tertiary):** no pill or padding, the label underlined at 0.08em with 0.2em offset, then its icon. Hover thickens the underline to 0.16em. "Take me to …".
+- **Link (tertiary):** no pill or padding, just the label then its icon. Hover underlines the label at 0.08em with 0.2em offset. "Take me to …".
 - **Hover:** the outline fills with a 12% ink tint; the cut-out darkens its pill (`brightness(0.7)`).
 - **Focus:** 2px ink outline, 4px offset.
 - **Disabled:** 40% opacity.
@@ -244,7 +244,7 @@ The marketing hero swaps its "You were about to open …" line and its suggestio
 - **Do** keep chroma at or under 0.13 for any new derived colour.
 - **Do** set the page background to ink and give the canvas a primary fallback.
 - **Do** set display text in Gloock 400 at line-height 1.04 and −0.02em tracking.
-- **Do** make exactly one action per group the cut-out pill; the others are 1.5px outlined pills of the same size, or a tertiary underlined link.
+- **Do** make exactly one action per group the cut-out pill; the others are 1.5px outlined pills of the same size, or a tertiary text link.
 - **Do** draw pill outlines as an inset box-shadow so outlined and cut-out pills match exactly.
 - **Do** use Phosphor bold icons, inlined as SVG, coloured with `currentColor`.
 - **Do** use pure white for editable fields.

@@ -5,6 +5,7 @@
 //   store/tile.png               Chrome Web Store small promo tile
 //   store/marquee-tile.png       Chrome Web Store marquee promo tile
 //   website/shots/*.jpg          website screenshots, each in its own colour
+//   instead.mp4 and .jpg         cover video and poster for jackbush.github.io
 // Each image fixes its suggestion, hue and gradient curve (hue 200 and one
 // curve unless it says otherwise). Each is drawn at 3x and scaled down for
 // crisp type. Chrome's software rendering can differ by a shade between runs,
@@ -25,7 +26,7 @@ import { once } from "node:events";
 import { createServer } from "node:http";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { extname, join, normalize } from "node:path";
+import { extname, join, normalize, resolve } from "node:path";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 const SITE = join(ROOT, "dist/chrome");
@@ -69,6 +70,26 @@ const IMAGES = [
     suggestion: "Look at a tree, from leaf to root", hue: 330, seed: 44, waitMs: 5800, probe: true,
   },
 ];
+
+// The cover video on jackbush.github.io's projects list: the website's
+// screenshots bar the bike one, each with a "Take me to" link to a different
+// site, fading from one to the next and looping. It's saved in that repo,
+// next to this one unless HOMEPAGE says where, with its first frame as the
+// poster.
+const HOMEPAGE = process.env.HOMEPAGE ?? join(ROOT, "../jackbush.github.io");
+const VIDEO = {
+  out: "src/assets/covers/instead.mp4",
+  poster: "src/assets/covers/instead.jpg",
+  width: 1200, height: 800, scale: 1.5, fps: 30,
+  // Seconds: how long each one shows, then the change to the next. The text
+  // and buttons fade out, the colours move, then they fade back in, each
+  // overlapping the next a little.
+  hold: 2.6, textOut: [0, 0.5], colours: [0.3, 1.5], textIn: [1.3, 1.8],
+  scenes: SITE_SHOTS.filter(({ suggestion }) => suggestion !== "Ride your bike").map((shot, i) => ({
+    ...shot,
+    from: ["https://www.reddit.com/", "https://www.facebook.com/", "https://www.youtube.com/", "https://x.com/", "https://www.instagram.com/"][i],
+  })),
+};
 
 // Math.random as a fixed sequence: the hue first (settings picks it with the
 // first random number), then the gradient curve.
@@ -216,10 +237,10 @@ async function capture({ send, next }, origin, image) {
 const SAME_PSNR = 60;
 
 // Scales the supersampled capture down to the image's size (`scale` times its
-// page size) and saves it, unless it looks the same as the saved one.
-// Resolves to whether the file changed.
+// page size) and saves it to `out` (from the root of this repo, or absolute),
+// unless it looks the same as the saved one. Resolves to whether the file changed.
 function save(png, { out, width, height, scale }) {
-  const file = join(ROOT, out);
+  const file = resolve(ROOT, out);
   const fresh = file.replace(/(\.\w+)$/, ".new$1");
   const args = ["-loglevel", "error", "-y", "-f", "png_pipe", "-i", "-",
     "-vf", `scale=${width * scale}:${height * scale}:flags=lanczos`];
@@ -241,6 +262,107 @@ function psnr(a, b) {
   return !m ? 0 : m[1] === "inf" ? Infinity : Number(m[1]);
 }
 
+// The arc a seed gives (as background.js's randomArc draws it after the hue),
+// with its bend and side as one signed curvature so two arcs can be blended:
+// halfway between a hump and a dip is a straight line.
+function arcFor(seed) {
+  const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const [left, right, bend, side] = [random(), random(), 1 + random() * 2, random() < 0.5 ? 1 : -1];
+  return { left, right, curve: side / bend };
+}
+
+// Draws one frame of the video: the colours (hue and arc), and the text and
+// buttons with their opacity. Math.random is swapped for the arc's values while newArc
+// draws it.
+const SET_FRAME = `(({ hue, arc, text, from, opacity }) => {
+  if (suggestions[current] !== text) {
+    suggestions.splice(0, suggestions.length, text);
+    deck = [];
+    current = -1;
+    show();
+    document.getElementById("from")?.remove();
+    offerOriginal(from);
+  }
+  params.h = hue;
+  applyColours();
+  const k = Math.abs(arc.curve) < 1e-4 ? 1e-4 : arc.curve;
+  const values = [arc.left, arc.right, (1 / Math.abs(k) - 1) / 2, k > 0 ? 0 : 1];
+  const random = Math.random;
+  Math.random = () => values.shift();
+  background.newArc();
+  Math.random = random;
+  for (const id of ["suggestion", "actions"]) document.getElementById(id).style.opacity = opacity;
+})`;
+
+const ease = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
+const progress = (t, [start, end]) => ease((t - start) / (end - start));
+const mixHue = (a, b, t) => ((a + ((((b - a) % 360) + 540) % 360 - 180) * t) % 360 + 360) % 360;
+
+// Renders the cover video to HOMEPAGE and saves its first frame as the poster.
+// Frames are screenshots at twice the video's size, scaled down by ffmpeg.
+async function renderVideo({ send, next }, origin) {
+  const { width, height, scale, fps, hold, scenes } = VIDEO;
+  await send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: scale * 2, mobile: false });
+  const loaded = next("Page.loadEventFired");
+  await send("Page.navigate", { url: `${origin}/demo.html` });
+  await loaded;
+  await send("Runtime.evaluate", {
+    expression: `(async () => {
+      while (suggestions.length < 2) await new Promise((r) => setTimeout(r, 50));
+      // The buttons are a size up, as the card shows the video small.
+      const size = parseFloat(getComputedStyle(document.getElementById("done")).fontSize) + 2;
+      document.head.append(Object.assign(document.createElement("style"), {
+        textContent: \`#from { transition: none; } #actions .btn { font-size: \${size}px; }\`,
+      }));
+      await document.fonts.ready;
+    })()`,
+    awaitPromise: true,
+  });
+  const frame = async (state) => {
+    const result = await send("Runtime.evaluate", { expression: `${SET_FRAME}(${JSON.stringify(state)})` });
+    if (result.exceptionDetails) throw new Error(`${VIDEO.out}: ${result.exceptionDetails.exception?.description}`);
+    await send("Runtime.evaluate", { expression: "new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))", awaitPromise: true });
+    return Buffer.from((await send("Page.captureScreenshot", { format: "png" })).data, "base64");
+  };
+
+  const file = join(HOMEPAGE, VIDEO.out);
+  const ffmpeg = spawn("ffmpeg", [
+    "-loglevel", "error", "-y", "-f", "image2pipe", "-c:v", "png", "-framerate", String(fps), "-i", "-",
+    "-vf", `scale=${width * scale}:${height * scale}:flags=lanczos,format=yuv420p`,
+    "-c:v", "libx264", "-preset", "slow", "-crf", "20", "-movflags", "+faststart", "-an", file,
+  ], { stdio: ["pipe", "inherit", "inherit"] });
+  const encoded = once(ffmpeg, "exit");
+  const write = async (png, times = 1) => {
+    for (let i = 0; i < times; i++) if (!ffmpeg.stdin.write(png)) await once(ffmpeg.stdin, "drain");
+  };
+
+  const change = VIDEO.textIn[1];
+  for (const [i, scene] of scenes.entries()) {
+    const nextScene = scenes[(i + 1) % scenes.length];
+    const [a, b] = [arcFor(scene.seed), arcFor(nextScene.seed)];
+    const shown = { hue: scene.hue, arc: a, text: scene.suggestion, from: scene.from, opacity: 1 };
+    const still = await frame(shown);
+    if (i === 0) save(still, { out: join(HOMEPAGE, VIDEO.poster), width, height, scale });
+    await write(still, Math.round(hold * fps));
+    for (let f = 0; f < Math.round(change * fps); f++) {
+      const t = f / fps;
+      const c = progress(t, VIDEO.colours);
+      const incoming = t >= VIDEO.textOut[1];
+      await write(await frame({
+        hue: mixHue(scene.hue, nextScene.hue, c),
+        arc: Object.fromEntries(Object.keys(a).map((key) => [key, a[key] + (b[key] - a[key]) * c])),
+        text: incoming ? nextScene.suggestion : scene.suggestion,
+        from: incoming ? nextScene.from : scene.from,
+        opacity: incoming ? progress(t, VIDEO.textIn) : 1 - progress(t, VIDEO.textOut),
+      }));
+    }
+  }
+  ffmpeg.stdin.end();
+  const [code] = await encoded;
+  if (code !== 0) throw new Error(`ffmpeg exited with ${code}`);
+  console.log(`Updated ${file} and its poster; commit them in that repo`);
+}
+
 execFileSync("sh", [join(ROOT, "scripts/build.sh")], { stdio: "ignore" });
 const server = await serve();
 const origin = `http://127.0.0.1:${server.address().port}`;
@@ -259,8 +381,10 @@ try {
   for (const image of probes) changed = (await render(image)) || changed;
   if (changed || process.argv.includes("--all") || rest.some(({ out }) => !existsSync(join(ROOT, out)))) {
     for (const image of rest) await render(image);
+    if (existsSync(HOMEPAGE)) await renderVideo(chrome, origin);
+    else console.log(`Skipped the cover video: no ${HOMEPAGE} (set HOMEPAGE)`);
   } else {
-    console.log(`Kept the other ${rest.length} images`);
+    console.log(`Kept the other ${rest.length} images and the cover video`);
   }
 } finally {
   await chrome.close();

@@ -101,6 +101,8 @@ npm run images
 
 It needs Node 22 or later, ffmpeg and Chrome. An image is only replaced when the new render looks different. It renders two images first (a page with its "Take me to" link, and the settings page); if neither changed, it keeps the rest as they are. `npm run images -- --all` renders every image regardless.
 
+When the rest are rendered, so is the cover video for [jackbush.github.io](https://jackbush.github.io), which takes a few minutes. It's saved in that repo (`src/assets/covers/instead.mp4`, with its first frame as `instead.jpg`), which it expects next to this one; set `HOMEPAGE` to its path if it's somewhere else. Commit it there yourself, as the hook only adds images in this repo.
+
 A pre-commit hook in `.githooks/` runs it whenever a commit changes the page, settings or suggestions, and adds any images that changed. Turn it on once per clone:
 
 ```bash

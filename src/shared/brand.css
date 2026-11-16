@@ -37,10 +37,9 @@
 .btn.outline { box-shadow: inset 0 0 0 var(--line) var(--ink); }
 .btn.outline:hover:not(:disabled) { background: color-mix(in oklab, var(--ink) 12%, transparent); }
 
-/* Link buttons (tertiary): no pill, just the underlined label and its icon. */
+/* Link buttons (tertiary): no pill, just the label and its icon, underlined on hover. */
 .btn.link { padding-inline: 0; }
-.btn.link span { text-decoration: underline; text-decoration-thickness: 0.08em; text-underline-offset: 0.2em; }
-.btn.link:hover:not(:disabled) span { text-decoration-thickness: 0.16em; }
+.btn.link:hover:not(:disabled) span { text-decoration: underline; text-decoration-thickness: 0.08em; text-underline-offset: 0.2em; }
 
 /* Cut-out buttons (cutout.js): the label and icon are masked out of an ink
    pill, so the ground shows through them. The real label and icon stay in
