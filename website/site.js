@@ -7,11 +7,15 @@ const CYCLE_MS = 4200;
 const PAPER = getComputedStyle(document.documentElement).getPropertyValue("--paper").trim();
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-// Chrome is the cut-out button. (The Firefox button returns with its listing.)
+// The visitor's browser goes first as the cut-out button; the other is outlined.
+const firefox = /firefox/i.test(navigator.userAgent);
 for (const group of document.querySelectorAll("[data-install]")) {
-  const chrome = group.querySelector('[data-store="chrome"]');
-  chrome.classList.add("cut-out");
-  cutOut(chrome);
+  const [chrome, fox] = ["chrome", "firefox"].map((s) => group.querySelector(`[data-store="${s}"]`));
+  const [first, second] = firefox ? [fox, chrome] : [chrome, fox];
+  group.prepend(first, second);
+  first.classList.add("cut-out");
+  second.classList.add("outline");
+  cutOut(first);
 }
 
 const shared = import("./shared.js"); // shuffle, parsePacks, suggestionsFor, plainText
